@@ -1,0 +1,127 @@
+{
+  "entities": {
+    "Doctor": {
+      "title": "Doctor",
+      "description": "Medical professional details",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "specialty": { "type": "string" },
+        "department": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "rating": { "type": "number" },
+        "schedule": { "type": "string" }
+      },
+      "required": ["name", "specialty", "department", "photoUrl", "rating", "schedule"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "A patient review for the clinic or a specific doctor",
+      "type": "object",
+      "properties": {
+        "author": { "type": "string", "description": "Name of the reviewer" },
+        "rating": { "type": "number", "description": "Rating from 1 to 5" },
+        "text": { "type": "string", "description": "Review content" },
+        "date": { "type": "string", "format": "date-time", "description": "Date of the review" },
+        "doctorId": { "type": "string", "description": "Optional ID of the doctor being reviewed" },
+        "source": { "type": "string", "description": "Source of the review (e.g., 'odoctor.kg', '2GIS', 'Google', 'New')" }
+      },
+      "required": ["author", "rating", "text", "date", "source"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Appointment booking details",
+      "type": "object",
+      "properties": {
+        "doctorId": { "type": "string" },
+        "patientFirstName": { "type": "string" },
+        "patientLastName": { "type": "string" },
+        "patientPhone": { "type": "string" },
+        "appointmentDate": { "type": "string" },
+        "appointmentTime": { "type": "string" },
+        "service": { "type": "string" },
+        "price": { "type": "number" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["Новая", "Подтверждена", "Завершена", "Отменена"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["doctorId", "patientFirstName", "patientLastName", "patientPhone", "appointmentDate", "appointmentTime", "service", "price", "status", "createdAt"]
+    },
+    "Patient": {
+      "title": "Patient",
+      "description": "Patient record",
+      "type": "object",
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "phone": { "type": "string" },
+        "totalVisits": { "type": "number" },
+        "lastVisitDate": { "type": "string" },
+        "totalPaid": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["firstName", "lastName", "phone", "totalVisits", "totalPaid", "createdAt"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "System notification for admins",
+      "type": "object",
+      "properties": {
+        "bookingId": { "type": "string" },
+        "message": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["message", "isRead", "createdAt"]
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "Application settings",
+      "type": "object",
+      "properties": {
+        "value": { "type": "string" }
+      },
+      "required": ["value"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Admin user details",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "username": { "type": "string" }
+      },
+      "required": ["email", "username"]
+    }
+  },
+  "firestore": {
+    "/doctors/{doctorId}": {
+      "schema": "Doctor",
+      "description": "Collection of available doctors"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Collection of patient reviews"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of appointments"
+    },
+    "/patients/{patientId}": {
+      "schema": "Patient",
+      "description": "Collection of patient records"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Collection of system notifications"
+    },
+    "/settings/{settingKey}": {
+      "schema": "Setting",
+      "description": "Global application settings"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Collection of administrative users"
+    }
+  }
+}

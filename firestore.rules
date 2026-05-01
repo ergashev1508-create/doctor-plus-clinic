@@ -1,0 +1,127 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- Admin God Mode (Override) ---
+    match /{document=**} {
+      allow read, write: if request.auth.token.email == 'ergashev.1508@gmail.com' ||
+                           request.auth.token.email == 'doctor.plus@gmail.com';
+    }
+    
+    // --- Global Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'ergashev.1508@gmail.com' ||
+        request.auth.token.email == 'doctor.plus@gmail.com'
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128;
+    }
+
+    // --- Validation Functions ---
+    function isValidDoctor(data) {
+      return data.keys().hasAll(['name', 'specialty', 'department', 'photoUrl', 'rating', 'schedule']) &&
+             data.keys().size() == 6 &&
+             data.name is string &&
+             data.specialty is string &&
+             data.department is string &&
+             data.photoUrl is string &&
+             data.rating is number &&
+             data.schedule is string;
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['author', 'rating', 'text', 'date', 'source']) &&
+             data.keys().size() >= 5 && data.keys().size() <= 6 &&
+             data.author is string &&
+             data.rating is number &&
+             data.text is string &&
+             data.date is string &&
+             data.source is string;
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll(['doctorId', 'patientFirstName', 'patientLastName', 'patientPhone', 'appointmentDate', 'appointmentTime', 'service', 'price', 'status', 'createdAt']) &&
+             data.keys().size() >= 10 && data.keys().size() <= 11 &&
+             data.doctorId is string &&
+             data.patientFirstName is string &&
+             data.patientLastName is string &&
+             data.patientPhone is string &&
+             data.appointmentDate is string &&
+             data.appointmentTime is string &&
+             data.status in ['Новая', 'Подтверждена', 'Завершена', 'Отменена'];
+    }
+
+    function isValidPatient(data) {
+      return data.keys().hasAll(['firstName', 'lastName', 'phone', 'totalVisits', 'lastVisitDate', 'totalPaid', 'createdAt']) &&
+             data.firstName is string &&
+             data.lastName is string &&
+             data.phone is string &&
+             data.totalVisits is number &&
+             data.totalPaid is number;
+    }
+
+    // --- Collections ---
+
+    match /doctors/{doctorId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidDoctor(request.resource.data);
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isValidId(reviewId) && isValidReview(request.resource.data) && (isAdmin() || request.resource.data.source == 'Новый');
+      allow delete: if isAdmin();
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isAdmin();
+      allow create: if isValidId(bookingId) && 
+                      isValidBooking(request.resource.data) && 
+                      (isAdmin() || request.resource.data.status == 'Новая') &&
+                      exists(/databases/$(database)/documents/doctors/$(request.resource.data.doctorId));
+      
+      allow update: if isAdmin() && (
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) ||
+        isValidBooking(request.resource.data)
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    match /patients/{patientId} {
+      allow read: if isAdmin();
+      allow create: if isValidPatient(request.resource.data);
+      allow update: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalVisits', 'lastVisitDate', 'totalPaid']) &&
+        request.resource.data.totalVisits is number &&
+        request.resource.data.totalPaid is number
+      );
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() || (
+        isValidId(notificationId) && 
+        request.resource.data.keys().hasAll(['bookingId', 'message', 'isRead', 'createdAt']) &&
+        request.resource.data.isRead == false
+      );
+    }
+
+    match /settings/{settingKey} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

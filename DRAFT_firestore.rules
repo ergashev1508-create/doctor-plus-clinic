@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Role-Based Access Control
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'ergashev.1508@gmail.com'
+      );
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Helpers ---
+
+    function isValidDoctor(data) {
+      return data.keys().hasAll(['name', 'specialty', 'department', 'photoUrl', 'rating', 'schedule']) &&
+             data.keys().size() == 6 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.specialty is string && data.specialty.size() <= 200 &&
+             data.department is string && data.department.size() <= 200 &&
+             data.photoUrl is string && data.photoUrl.size() <= 500 &&
+             data.rating is number && data.rating >= 0 && data.rating <= 5 &&
+             data.schedule is string && data.schedule.size() <= 500;
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['author', 'rating', 'text', 'date', 'source']) &&
+             data.keys().size() >= 5 && data.keys().size() <= 6 &&
+             data.author is string && data.author.size() <= 100 &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.text is string && data.text.size() <= 2000 &&
+             data.date is string &&
+             data.source is string &&
+             (!('doctorId' in data) || (data.doctorId is string && isValidId(data.doctorId)));
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll(['doctorId', 'patientFirstName', 'patientLastName', 'patientPhone', 'appointmentDate', 'appointmentTime', 'service', 'price', 'status', 'createdAt']) &&
+             data.keys().size() >= 10 && data.keys().size() <= 11 &&
+             data.doctorId is string && isValidId(data.doctorId) &&
+             data.patientFirstName is string && data.patientFirstName.size() <= 100 &&
+             data.patientLastName is string && data.patientLastName.size() <= 100 &&
+             data.patientPhone is string && data.patientPhone.size() <= 20 &&
+             data.appointmentDate is string &&
+             data.appointmentTime is string &&
+             data.service is string &&
+             data.price is number &&
+             data.status in ['Новая', 'Подтверждена', 'Завершена', 'Отменена'] &&
+             data.createdAt is string;
+    }
+
+    // --- Collection Rules ---
+
+    match /doctors/{doctorId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidDoctor(incoming());
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isValidId(reviewId) && isValidReview(incoming()) && incoming().source == 'Новый';
+      allow delete: if isAdmin();
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isAdmin();
+      allow create: if isValidId(bookingId) && 
+                      isValidBooking(incoming()) && 
+                      incoming().status == 'Новая' &&
+                      exists(/databases/$(database)/documents/doctors/$(incoming().doctorId));
+      
+      allow update: if isAdmin() && (
+        // Action: Update Status
+        (incoming().diff(existing()).affectedKeys().hasOnly(['status'])) ||
+        // Action: Full Update
+        isValidBooking(incoming())
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    match /patients/{patientId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() || (
+        // Allow creating notifications when booking is created (if we move that logic to rules/client)
+        isValidId(notificationId) && 
+        incoming().keys().hasAll(['bookingId', 'message', 'isRead', 'createdAt']) &&
+        incoming().isRead == false
+      );
+    }
+
+    match /settings/{settingKey} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() && isValidId(adminId);
+    }
+  }
+}
