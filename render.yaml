@@ -1,8 +1,8 @@
 services:
   - type: web
     name: doctor-plus-clinic
-    env: node
-    plan: starter
+    runtime: node
+    plan: free
     buildCommand: npm ci && npm run build
     startCommand: npm run start
     healthCheckPath: /api/health
@@ -11,9 +11,3 @@ services:
         value: production
       - key: SESSION_SECRET
         generateValue: true
-      - key: CLINIC_DATA_PATH
-        value: /var/data/clinic.json
-    disk:
-      name: doctor-plus-data
-      mountPath: /var/data
-      sizeGB: 1
