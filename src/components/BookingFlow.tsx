@@ -354,7 +354,14 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
                   className="group flex items-center gap-6 rounded-[2rem] border-2 border-slate-50 p-4 transition-all hover:border-[#B3D9F5] hover:bg-[#F8FCFF]"
                 >
                   <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl shadow-lg">
-                    <img src={doctor.photoUrl} alt={doctor.name} className="h-full w-full object-cover" />
+                    <img
+                      src={doctor.photoUrl}
+                      alt={doctor.name}
+                      className="h-full w-full object-cover"
+                      onError={(event) => {
+                        event.currentTarget.src = '/doctors/kabylov-zhyldyzbek-saparovich.jpeg';
+                      }}
+                    />
                   </div>
                   <div className="flex-1 text-left">
                     <div className="flex flex-wrap items-center gap-2 text-xl font-bold">
@@ -566,7 +573,14 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
             <div className="space-y-6 rounded-3xl border-2 border-white bg-[#F8FCFF] p-8 shadow-lg">
               <div className="flex items-center gap-6 border-b border-blue-50 pb-6">
                 <div className="h-24 w-24 overflow-hidden rounded-2xl shadow-md">
-                  <img src={selectedDoctor?.photoUrl} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={selectedDoctor?.photoUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.src = '/doctors/kabylov-zhyldyzbek-saparovich.jpeg';
+                    }}
+                  />
                 </div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-[#5AACE6]">{selectedDoctor?.specialty}</p>

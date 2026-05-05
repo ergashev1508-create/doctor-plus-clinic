@@ -124,6 +124,18 @@ const Navbar = ({ onScroll }: { onScroll: (id: string) => void }) => {
     { id: 'contacts', label: 'Контакты' },
   ];
 
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
+
+  const handleMobileNav = (id: string) => {
+    setIsMenuOpen(false);
+    window.setTimeout(() => onScroll(id), 120);
+  };
+
   return (
     <nav className="sticky top-0 z-50 h-20 bg-white/90 backdrop-blur-md border-b border-[#B3D9F5] flex items-center shrink-0">
       <div className="max-w-7xl mx-auto px-8 w-full flex justify-between items-center h-full">
@@ -169,25 +181,61 @@ const Navbar = ({ onScroll }: { onScroll: (id: string) => void }) => {
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
-            className="fixed inset-0 top-20 bg-white z-40 p-8 flex flex-col gap-8 lg:hidden"
+            transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+            className="fixed inset-0 z-[100] bg-white lg:hidden"
           >
-            {links.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => {
-                  onScroll(link.id);
-                  setIsMenuOpen(false);
-                }}
-                className="text-4xl font-black text-[#1A2B3C] uppercase tracking-tighter text-left border-b border-slate-50 pb-4"
-              >
-                {link.label}
-              </button>
-            ))}
-            <div className="mt-auto">
-              <p className="text-slate-400 font-bold mb-4 uppercase text-[10px] tracking-widest">Личный кабинет</p>
-              <Link to="/admin/login" className="text-xl font-bold text-[#5AACE6]">
-                Вход для персонала
-              </Link>
+            <div className="flex h-dvh flex-col overflow-y-auto bg-[linear-gradient(180deg,#ffffff_0%,#f1f8ff_100%)]">
+              <div className="flex h-20 shrink-0 items-center justify-between border-b border-[#DDEDFC] px-6">
+                <Link
+                  to="/"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3"
+                >
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#5AACE6] text-2xl font-black text-white shadow-lg shadow-blue-100">
+                    +
+                  </div>
+                  <div>
+                    <p className="text-xl font-black uppercase leading-none tracking-tighter text-[#1A2B3C]">{CLINIC_INFO.name}</p>
+                    <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.22em] text-slate-400">Медцентр Бишкек</p>
+                  </div>
+                </Link>
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  className="rounded-2xl bg-[#F0F8FF] p-3 text-[#1A2B3C]"
+                  aria-label="Закрыть меню"
+                >
+                  <X className="h-7 w-7" />
+                </button>
+              </div>
+
+              <div className="flex-1 px-6 py-8">
+                <p className="mb-5 text-[10px] font-black uppercase tracking-[0.3em] text-[#5AACE6]">Навигация</p>
+                <div className="space-y-3">
+                  {links.map((link, index) => (
+                    <button
+                      key={link.id}
+                      onClick={() => handleMobileNav(link.id)}
+                      className="flex w-full items-center justify-between rounded-[1.4rem] border border-[#E3EEF9] bg-white px-5 py-4 text-left shadow-[0_12px_30px_rgba(20,45,75,0.04)]"
+                    >
+                      <span className="text-[11px] font-black text-slate-300">0{index + 1}</span>
+                      <span className="text-xl font-black uppercase tracking-tight text-[#1A2B3C]">{link.label}</span>
+                      <ChevronRight className="h-5 w-5 text-[#5AACE6]" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-[#DDEDFC] bg-white px-6 py-6">
+                <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Личный кабинет</p>
+                <Link
+                  to="/admin/login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-between rounded-[1.4rem] bg-[#1A2B3C] px-5 py-4 text-base font-black text-white"
+                >
+                  Вход для персонала
+                  <ChevronRight className="h-5 w-5 text-[#5AACE6]" />
+                </Link>
+              </div>
             </div>
           </motion.div>
         )}
@@ -456,7 +504,14 @@ const PublicSite = () => {
               >
                 <div className="flex items-start gap-5 mb-6">
                   <div className="w-24 h-24 rounded-[2rem] overflow-hidden shadow-lg shrink-0">
-                    <img src={doctor.photoUrl} alt={doctor.name} className="w-full h-full object-cover" />
+                    <img
+                      src={doctor.photoUrl}
+                      alt={doctor.name}
+                      className="w-full h-full object-cover"
+                      onError={(event) => {
+                        event.currentTarget.src = '/doctors/kabylov-zhyldyzbek-saparovich.jpeg';
+                      }}
+                    />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-2">
