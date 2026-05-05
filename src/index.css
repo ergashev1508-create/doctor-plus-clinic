@@ -31,3 +31,7 @@ html.lenis body {
   transition-duration: 1ms;
   transition-behavior: allow-discrete;
 }
+
+.doctor-photo-fallback > div {
+  display: flex;
+}

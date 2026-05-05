@@ -509,9 +509,13 @@ const PublicSite = () => {
                       alt={doctor.name}
                       className="w-full h-full object-cover"
                       onError={(event) => {
-                        event.currentTarget.src = '/doctors/kabylov-zhyldyzbek-saparovich.jpeg';
+                        event.currentTarget.style.display = 'none';
+                        event.currentTarget.parentElement?.classList.add('doctor-photo-fallback');
                       }}
                     />
+                    <div className="hidden h-full w-full items-center justify-center bg-[#E8F4FD] text-3xl font-black text-[#5AACE6]">
+                      {doctor.name.slice(0, 1)}
+                    </div>
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-2">

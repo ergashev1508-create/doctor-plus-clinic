@@ -359,9 +359,13 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
                       alt={doctor.name}
                       className="h-full w-full object-cover"
                       onError={(event) => {
-                        event.currentTarget.src = '/doctors/kabylov-zhyldyzbek-saparovich.jpeg';
+                        event.currentTarget.style.display = 'none';
+                        event.currentTarget.parentElement?.classList.add('doctor-photo-fallback');
                       }}
                     />
+                    <div className="hidden h-full w-full items-center justify-center bg-[#E8F4FD] text-2xl font-black text-[#5AACE6]">
+                      {doctor.name.slice(0, 1)}
+                    </div>
                   </div>
                   <div className="flex-1 text-left">
                     <div className="flex flex-wrap items-center gap-2 text-xl font-bold">
@@ -578,9 +582,13 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
                     alt=""
                     className="h-full w-full object-cover"
                     onError={(event) => {
-                      event.currentTarget.src = '/doctors/kabylov-zhyldyzbek-saparovich.jpeg';
+                      event.currentTarget.style.display = 'none';
+                      event.currentTarget.parentElement?.classList.add('doctor-photo-fallback');
                     }}
                   />
+                  <div className="hidden h-full w-full items-center justify-center bg-[#E8F4FD] text-3xl font-black text-[#5AACE6]">
+                    {selectedDoctor?.name.slice(0, 1)}
+                  </div>
                 </div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-[#5AACE6]">{selectedDoctor?.specialty}</p>
