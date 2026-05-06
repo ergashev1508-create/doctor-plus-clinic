@@ -104,7 +104,6 @@ export const PRICES: ServicePrice[] = [
     doctorIds: [
       'moldosheva-gulzat-sharshebaevna',
       'sultangazy-kyzy-nazgul',
-      'kabylov-zhyldyzbek-saparovich',
       'kabulova-gulbara-saparalievna',
     ],
     badge: 'Прием',
@@ -121,7 +120,6 @@ export const PRICES: ServicePrice[] = [
     doctorIds: [
       'moldosheva-gulzat-sharshebaevna',
       'sultangazy-kyzy-nazgul',
-      'kabylov-zhyldyzbek-saparovich',
       'kabulova-gulbara-saparalievna',
     ],
     bookable: true,

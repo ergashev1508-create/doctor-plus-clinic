@@ -256,15 +256,21 @@ const doctorPhotoById: Record<string, string> = {
 };
 
 const doctorScheduleById: Record<string, string> = {
+  "kabylov-zhyldyzbek-saparovich": "По записи",
   "kabulova-gulbara-saparalievna": "Пн-Пт: 09:00 - 16:00",
   "moldosheva-gulzat-sharshebaevna": "Сб: 10:00 - 16:00",
 };
 
 const doctorDepartmentById: Record<string, string> = {
+  "kabylov-zhyldyzbek-saparovich": "Плазмаферез",
   "kabulova-gulbara-saparalievna": "УЗИ-диагностика",
   "moldosheva-gulzat-sharshebaevna": "Терапия",
   "procedure-room": "Процедурный кабинет",
   "logoped-room": "Логопед-дефектолог",
+};
+
+const doctorSpecialtyById: Record<string, string> = {
+  "kabylov-zhyldyzbek-saparovich": "Плазмаферез, эфферентная терапия",
 };
 
 function cleanString(value: unknown) {
@@ -285,7 +291,7 @@ function normalizeDoctorRecord(doctor: DoctorRecord): DoctorRecord {
   return {
     id,
     name: cleanString(doctor.name),
-    specialty: cleanString(doctor.specialty),
+    specialty: doctorSpecialtyById[id] || cleanString(doctor.specialty),
     department: doctorDepartmentById[id] || cleanString(doctor.department),
     photoUrl: doctorPhotoById[id] || cleanString(doctor.photoUrl),
     rating: Number.isFinite(doctor.rating) ? doctor.rating : 5,
