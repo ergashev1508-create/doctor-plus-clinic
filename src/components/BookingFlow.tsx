@@ -100,19 +100,42 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
 
   const getTimeSlots = () => {
     if (!selectedDoctor) return [];
+    const scheduleByDoctorId: Record<string, { start: number; end: number }> = {
+      'procedure-room': { start: 8, end: 18 },
+      'logoped-room': { start: 9, end: 17 },
+      'moldosheva-gulzat-sharshebaevna': { start: 10, end: 16 },
+      'kabulova-gulbara-saparalievna': { start: 9, end: 16 },
+      'sultangazy-kyzy-nazgul': { start: 8, end: 14 },
+      'kabylov-zhyldyzbek-saparovich': { start: 9, end: 17 },
+    };
+    const { start, end } = scheduleByDoctorId[selectedDoctor.id] || { start: 9, end: 17 };
     const slots: string[] = [];
-    for (let hour = 9; hour < 17; hour += 1) {
+    for (let hour = start; hour < end; hour += 1) {
       slots.push(`${hour.toString().padStart(2, '0')}:00`);
       slots.push(`${hour.toString().padStart(2, '0')}:30`);
     }
     return slots;
   };
 
+  const isDateAllowedForDoctor = (doctorId: string, date: string) => {
+    if (!date) return true;
+    if (doctorId === 'moldosheva-gulzat-sharshebaevna') {
+      return new Date(`${date}T00:00:00`).getDay() === 6;
+    }
+    if (doctorId === 'kabulova-gulbara-saparalievna') {
+      const day = new Date(`${date}T00:00:00`).getDay();
+      return day >= 1 && day <= 5;
+    }
+    return true;
+  };
+
+  const selectedDateAllowed = !selection.doctorId || isDateAllowedForDoctor(selection.doctorId, selection.date);
+
   useEffect(() => {
     let cancelled = false;
 
     const loadAvailability = async () => {
-      if (!selection.doctorId || !selection.date) {
+      if (!selection.doctorId || !selection.date || !isDateAllowedForDoctor(selection.doctorId, selection.date)) {
         setAvailableSlots({});
         return;
       }
@@ -451,6 +474,12 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
                   <div className="flex h-48 items-center justify-center rounded-3xl border-2 border-dashed border-slate-100 font-medium text-slate-300">
                     Сначала выберите дату
                   </div>
+                ) : !selectedDateAllowed ? (
+                  <div className="flex h-48 items-center justify-center rounded-3xl border-2 border-dashed border-amber-100 bg-amber-50/50 px-6 text-center font-medium text-amber-700">
+                    {selectedDoctor?.id === 'moldosheva-gulzat-sharshebaevna'
+                      ? 'Этот специалист принимает только по субботам с 10:00 до 16:00. Выберите субботнюю дату.'
+                      : 'Этот специалист принимает с понедельника по пятницу. Выберите будний день.'}
+                  </div>
                 ) : loadingSlots ? (
                   <div className="flex h-48 items-center justify-center rounded-3xl border-2 border-dashed border-slate-100 font-medium text-slate-300">
                     Проверяем доступные слоты...
@@ -481,7 +510,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
 
             <div className="flex justify-end">
               <button
-                disabled={!selection.date || !selection.time}
+                disabled={!selection.date || !selection.time || !selectedDateAllowed}
                 onClick={nextStep}
                 className="flex items-center gap-2 rounded-2xl bg-[#1A2B3C] px-8 py-4 font-bold text-white shadow-xl shadow-slate-900/10 transition-all hover:bg-[#2A3B4C] disabled:cursor-not-allowed disabled:opacity-30"
               >

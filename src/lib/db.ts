@@ -104,7 +104,7 @@ const seedDoctors: DoctorRecord[] = [
     department: "УЗИ-диагностика",
     photoUrl: "/doctors/kabulova-gulbara-saparalievna.webp",
     rating: 4.9,
-    schedule: "Вт, Чт, Сб: 09:00 - 16:00",
+    schedule: "Пн-Пт: 09:00 - 16:00",
   },
   {
     id: "moldosheva-gulzat-sharshebaevna",
@@ -113,7 +113,25 @@ const seedDoctors: DoctorRecord[] = [
     department: "Терапия",
     photoUrl: "/doctors/moldosheva-gulzat-sharshebaevna.webp",
     rating: 4.9,
-    schedule: "Пн-Сб: 10:00 - 18:00",
+    schedule: "Сб: 10:00 - 16:00",
+  },
+  {
+    id: "procedure-room",
+    name: "Процедурный кабинет",
+    specialty: "Медсестринские процедуры",
+    department: "Процедурный кабинет",
+    photoUrl: "/doctors/procedure-room.svg",
+    rating: 5,
+    schedule: "Пн-Сб: 08:00 - 18:00",
+  },
+  {
+    id: "logoped-room",
+    name: "Логопед-дефектолог",
+    specialty: "Консультации и занятия",
+    department: "Логопед-дефектолог",
+    photoUrl: "/doctors/logoped-room.svg",
+    rating: 5,
+    schedule: "По записи",
   },
 ];
 
@@ -233,6 +251,20 @@ const doctorPhotoById: Record<string, string> = {
   "sultangazy-kyzy-nazgul": "/doctors/sultangazy-kyzy-nazgul.webp",
   "kabulova-gulbara-saparalievna": "/doctors/kabulova-gulbara-saparalievna.webp",
   "moldosheva-gulzat-sharshebaevna": "/doctors/moldosheva-gulzat-sharshebaevna.webp",
+  "procedure-room": "/doctors/procedure-room.svg",
+  "logoped-room": "/doctors/logoped-room.svg",
+};
+
+const doctorScheduleById: Record<string, string> = {
+  "kabulova-gulbara-saparalievna": "Пн-Пт: 09:00 - 16:00",
+  "moldosheva-gulzat-sharshebaevna": "Сб: 10:00 - 16:00",
+};
+
+const doctorDepartmentById: Record<string, string> = {
+  "kabulova-gulbara-saparalievna": "УЗИ-диагностика",
+  "moldosheva-gulzat-sharshebaevna": "Терапия",
+  "procedure-room": "Процедурный кабинет",
+  "logoped-room": "Логопед-дефектолог",
 };
 
 function cleanString(value: unknown) {
@@ -254,10 +286,10 @@ function normalizeDoctorRecord(doctor: DoctorRecord): DoctorRecord {
     id,
     name: cleanString(doctor.name),
     specialty: cleanString(doctor.specialty),
-    department: cleanString(doctor.department),
+    department: doctorDepartmentById[id] || cleanString(doctor.department),
     photoUrl: doctorPhotoById[id] || cleanString(doctor.photoUrl),
     rating: Number.isFinite(doctor.rating) ? doctor.rating : 5,
-    schedule: cleanString(doctor.schedule),
+    schedule: doctorScheduleById[id] || cleanString(doctor.schedule),
   };
 }
 
@@ -331,6 +363,12 @@ function normalizeStore(store: ClinicStore): ClinicStore {
   };
 
   const validDoctorIds = new Set(safeStore.doctors.map((doctor) => doctor.id));
+  for (const seedDoctor of seedDoctors) {
+    if (!validDoctorIds.has(seedDoctor.id)) {
+      safeStore.doctors.push(normalizeDoctorRecord(seedDoctor));
+      validDoctorIds.add(seedDoctor.id);
+    }
+  }
   safeStore.reviews = safeStore.reviews.filter((review) => !review.doctorId || validDoctorIds.has(review.doctorId));
   safeStore.bookings = safeStore.bookings.filter((booking) => validDoctorIds.has(booking.doctorId));
   safeStore.notifications = safeStore.notifications.filter((notification) =>

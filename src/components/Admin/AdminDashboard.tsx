@@ -537,8 +537,11 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <div className="min-w-[780px] border border-slate-100 rounded-[1.5rem] overflow-hidden">
-                    <div className="grid grid-cols-[120px_repeat(4,1fr)] bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.18em]">
+                  <div className="min-w-[1020px] border border-slate-100 rounded-[1.5rem] overflow-hidden">
+                    <div
+                      className="grid bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.18em]"
+                      style={{ gridTemplateColumns: `120px repeat(${doctors.length}, minmax(180px, 1fr))` }}
+                    >
                       <div className="px-4 py-4 border-r border-white/10">Время</div>
                       {doctors.map((doctor) => (
                         <div key={doctor.id} className="px-4 py-4 border-r last:border-r-0 border-white/10 text-center truncate">
@@ -548,7 +551,11 @@ export const AdminDashboard: React.FC = () => {
                     </div>
 
                     {scheduleTimes.map((time) => (
-                      <div key={time} className="grid grid-cols-[120px_repeat(4,1fr)] border-t border-slate-100">
+                      <div
+                        key={time}
+                        className="grid border-t border-slate-100"
+                        style={{ gridTemplateColumns: `120px repeat(${doctors.length}, minmax(180px, 1fr))` }}
+                      >
                         <div className="px-4 py-4 bg-slate-50 border-r border-slate-100 text-sm font-bold text-slate-500">{time}</div>
                         {doctors.map((doctor) => {
                           const booked = appointments.find(
