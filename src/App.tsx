@@ -563,19 +563,19 @@ const PublicSite = () => {
         </div>
       </section>
 
-      <section id="prices" className="py-32 bg-[linear-gradient(180deg,#ffffff_0%,#f8fcff_100%)]">
-        <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-12 gap-16 items-start">
-          <div className="md:col-span-4 translate-y-10 group">
-            <div className="sticky top-32 space-y-6">
-              <h2 className="text-5xl font-black tracking-tighter uppercase leading-none">Прайс-лист</h2>
+      <section id="prices" className="py-20 md:py-32 bg-[linear-gradient(180deg,#ffffff_0%,#f8fcff_100%)]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-start">
+          <div className="md:col-span-4 md:translate-y-10 group">
+            <div className="sticky top-32 space-y-5 md:space-y-6">
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none">Прайс-лист</h2>
               <p className="text-slate-500 font-medium">Все цены остались на месте: выберите категорию, чтобы быстро посмотреть нужный раздел.</p>
-              <div className="p-8 bg-[linear-gradient(135deg,#eff7ff_0%,#ffffff_100%)] rounded-[2.2rem] border border-[#DDEDFC] shadow-[0_20px_50px_rgba(90,172,230,0.08)]">
+              <div className="p-6 md:p-8 bg-[linear-gradient(135deg,#eff7ff_0%,#ffffff_100%)] rounded-[2rem] md:rounded-[2.2rem] border border-[#DDEDFC] shadow-[0_20px_50px_rgba(90,172,230,0.08)]">
                 <p className="text-xs font-black uppercase text-[#5AACE6] tracking-widest mb-4">Уточнение стоимости</p>
-                <p className="text-lg font-bold text-slate-600 italic">Если нужна точная сумма по редким процедурам, позвоните в регистратуру.</p>
+                <p className="text-base md:text-lg font-bold text-slate-600 italic">Если нужна точная сумма по редким процедурам, позвоните в регистратуру.</p>
               </div>
               <a
                 href={`tel:${CLINIC_INFO.phone.replace(/\D/g, '')}`}
-                className="inline-flex items-center gap-4 text-xl font-black hover:text-[#5AACE6] transition-colors rounded-[1.6rem] border border-transparent hover:border-[#DDEDFC] hover:bg-white px-3 py-3"
+                className="inline-flex items-center gap-4 text-2xl sm:text-xl font-black hover:text-[#5AACE6] transition-colors rounded-[1.6rem] border border-transparent hover:border-[#DDEDFC] hover:bg-white px-3 py-3"
               >
                 <div className="w-12 h-12 bg-[#B3D9F5] rounded-2xl flex items-center justify-center text-[#5AACE6]">
                   <Phone className="w-6 h-6" />
@@ -586,7 +586,7 @@ const PublicSite = () => {
           </div>
 
           <div className="md:col-span-8 space-y-5">
-            <div className="rounded-[2rem] border border-[#E3EEF9] bg-white/80 p-3 shadow-[0_18px_45px_rgba(20,45,75,0.04)]">
+            <div className="rounded-[1.7rem] md:rounded-[2rem] border border-[#E3EEF9] bg-white/80 p-2.5 md:p-3 shadow-[0_18px_45px_rgba(20,45,75,0.04)]">
               <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2">
                 {priceCategories.map((category) => (
                   <button
@@ -594,14 +594,14 @@ const PublicSite = () => {
                     type="button"
                     onClick={() => setActivePriceCategory(category)}
                     className={cn(
-                      'rounded-[1.2rem] px-4 py-3 text-left text-[11px] font-black uppercase tracking-[0.12em] transition-all',
+                      'rounded-[1.1rem] px-3 py-3 text-left text-[10px] sm:text-[11px] font-black uppercase tracking-[0.08em] sm:tracking-[0.12em] transition-all',
                       activePriceCategory === category
                         ? 'bg-[#1A2B3C] text-white shadow-[0_12px_30px_rgba(26,43,60,0.18)]'
                         : 'bg-[#F8FCFF] text-slate-400 hover:bg-[#EEF7FF] hover:text-[#1A2B3C]'
                     )}
                   >
                     {category}
-                    <span className={cn('ml-2 rounded-full px-2 py-0.5 text-[9px]', activePriceCategory === category ? 'bg-white/15 text-white' : 'bg-white text-[#5AACE6]')}>
+                    <span className={cn('ml-1.5 rounded-full px-1.5 py-0.5 text-[9px]', activePriceCategory === category ? 'bg-white/15 text-white' : 'bg-white text-[#5AACE6]')}>
                       {PRICES.filter((price) => price.category === category).length}
                     </span>
                   </button>
@@ -609,22 +609,22 @@ const PublicSite = () => {
               </div>
             </div>
 
-            <div className="p-7 rounded-[2.4rem] bg-white border border-[#E3EEF9] transition-all shadow-[0_18px_45px_rgba(20,45,75,0.05)]">
-              <h4 className="text-2xl font-black mb-6 border-b border-slate-100 pb-4 flex justify-between items-center gap-4">
+            <div className="p-5 md:p-7 rounded-[2rem] md:rounded-[2.4rem] bg-white border border-[#E3EEF9] transition-all shadow-[0_18px_45px_rgba(20,45,75,0.05)]">
+              <h4 className="text-3xl md:text-2xl font-black mb-5 md:mb-6 border-b border-slate-100 pb-4 flex justify-between items-center gap-4">
                 {activePriceCategory}
-                <span className="shrink-0 rounded-full bg-[#F0F8FF] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#5AACE6]">{activePriceItems.length} услуг</span>
+                <span className="shrink-0 rounded-full bg-[#F0F8FF] px-3 md:px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#5AACE6]">{activePriceItems.length} услуг</span>
               </h4>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {activePriceItems.map((price) => (
                   <div key={price.name} className="rounded-[1.45rem] border border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#fbfdff_100%)] p-4 transition-all hover:-translate-y-0.5 hover:border-[#DDEDFC] hover:bg-white hover:shadow-[0_16px_35px_rgba(20,45,75,0.06)]">
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:gap-4">
                       <div className="min-w-0">
-                        <p className="text-[13px] font-black uppercase text-[#1A2B3C] tracking-[0.08em] leading-snug">{price.name}</p>
-                        <p className="mt-2 line-clamp-2 text-[11px] font-bold leading-relaxed text-slate-400">{price.description}</p>
+                        <p className="text-[14px] sm:text-[13px] font-black uppercase text-[#1A2B3C] tracking-[0.04em] sm:tracking-[0.08em] leading-snug">{price.name}</p>
+                        <p className="mt-2 text-[12px] sm:text-[11px] font-bold leading-relaxed text-slate-400">{price.description}</p>
                       </div>
-                      <div className="min-w-[112px] rounded-2xl bg-[#F0F8FF] px-4 py-3 text-right ring-1 ring-[#DDEDFC]">
-                        <p className="text-lg font-black leading-none text-[#1A2B3C]">{price.price}</p>
-                        <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-[#5AACE6]">{price.duration}</p>
+                      <div className="w-full sm:w-auto sm:min-w-[112px] rounded-2xl bg-[#F0F8FF] px-4 py-3 text-left sm:text-right ring-1 ring-[#DDEDFC]">
+                        <p className="text-2xl sm:text-lg font-black leading-none text-[#1A2B3C]">{price.price}</p>
+                        <p className="mt-1 text-[10px] sm:text-[9px] font-black uppercase tracking-widest text-[#5AACE6]">{price.duration}</p>
                       </div>
                     </div>
                   </div>
