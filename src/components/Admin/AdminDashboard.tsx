@@ -536,7 +536,12 @@ export const AdminDashboard: React.FC = () => {
                   <p className="text-slate-500">Быстрый обзор занятых слотов по каждому врачу.</p>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="mb-4 flex items-center justify-between rounded-2xl border border-[#d4e8f8] bg-[#eef7ff] px-5 py-3 text-sm font-bold text-[#1f6fb2]">
+                  <span>Прокрутите таблицу в сторону, чтобы увидеть всех специалистов</span>
+                  <span className="text-lg tracking-[0.25em]">← →</span>
+                </div>
+
+                <div className="overflow-x-auto pb-4 [scrollbar-color:#5AACE6_#e8f4fd] [scrollbar-width:thin]">
                   <div className="min-w-[1020px] border border-slate-100 rounded-[1.5rem] overflow-hidden">
                     <div
                       className="grid bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.18em]"
