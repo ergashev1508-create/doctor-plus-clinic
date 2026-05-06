@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { cn } from '../../lib/utils';
 import {
@@ -44,6 +44,8 @@ const TAB_META = [
 ] as const;
 
 export const AdminDashboard: React.FC = () => {
+  const scheduleScrollRef = useRef<HTMLDivElement | null>(null);
+  const scheduleTableScrollRef = useRef<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState('appointments');
   const [stats, setStats] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -121,6 +123,16 @@ export const AdminDashboard: React.FC = () => {
 
   const scheduleTimes = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
   const todayDateKey = new Date().toISOString().split('T')[0];
+  const scheduleGridWidth = Math.max(1020, 120 + doctors.length * 200);
+
+  const syncScheduleScroll = (
+    event: React.UIEvent<HTMLDivElement>,
+    targetRef: React.RefObject<HTMLDivElement | null>
+  ) => {
+    if (targetRef.current) {
+      targetRef.current.scrollLeft = event.currentTarget.scrollLeft;
+    }
+  };
 
   const activeTabMeta = TAB_META.find((tab) => tab.id === activeTab) || TAB_META[0];
   const unreadCount = logs.filter((log) => !log.isRead).length;
@@ -536,13 +548,21 @@ export const AdminDashboard: React.FC = () => {
                   <p className="text-slate-500">Быстрый обзор занятых слотов по каждому врачу.</p>
                 </div>
 
-                <div className="mb-4 flex items-center justify-between rounded-2xl border border-[#d4e8f8] bg-[#eef7ff] px-5 py-3 text-sm font-bold text-[#1f6fb2]">
-                  <span>Прокрутите таблицу в сторону, чтобы увидеть всех специалистов</span>
-                  <span className="text-lg tracking-[0.25em]">← →</span>
+                <div
+                  ref={scheduleScrollRef}
+                  onScroll={(event) => syncScheduleScroll(event, scheduleTableScrollRef)}
+                  className="mb-4 h-5 overflow-x-scroll overflow-y-hidden rounded-full bg-[#edf7ff] [scrollbar-color:#5AACE6_#e8f4fd] [scrollbar-width:thin]"
+                  aria-label="Horizontal schedule scroll"
+                >
+                  <div style={{ width: scheduleGridWidth, height: 1 }} />
                 </div>
 
-                <div className="overflow-x-auto pb-4 [scrollbar-color:#5AACE6_#e8f4fd] [scrollbar-width:thin]">
-                  <div className="min-w-[1020px] border border-slate-100 rounded-[1.5rem] overflow-hidden">
+                <div
+                  ref={scheduleTableScrollRef}
+                  onScroll={(event) => syncScheduleScroll(event, scheduleScrollRef)}
+                  className="overflow-x-auto pb-4 [scrollbar-color:#5AACE6_#e8f4fd] [scrollbar-width:thin]"
+                >
+                  <div className="border border-slate-100 rounded-[1.5rem] overflow-hidden" style={{ minWidth: scheduleGridWidth }}>
                     <div
                       className="grid bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.18em]"
                       style={{ gridTemplateColumns: `120px repeat(${doctors.length}, minmax(180px, 1fr))` }}
