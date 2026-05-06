@@ -8,6 +8,7 @@ import {
   Star,
   CheckCircle,
   MessageSquare,
+  Instagram,
   ChevronRight,
   Menu,
   X,
@@ -31,6 +32,7 @@ import type { Doctor, Review } from './types';
 const CATEGORY_ORDER = ['Консультации', 'УЗИ', 'Эфферентология', 'Аурикулотерапия', 'Логопед-дефектолог', 'Процедуры', 'ЭКГ'];
 const CLINIC_MAP_URL =
   'https://2gis.kg/bishkek/search/%D1%83%D0%BB.%20%D0%9C%D0%B0%D1%85%D0%B0%D1%82%D0%BC%D1%8B%20%D0%93%D0%B0%D0%BD%D0%B4%D0%B8%2C%20201';
+const INSTAGRAM_URL = 'https://www.instagram.com/doctorplusclinic.kg/';
 
 const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -774,6 +776,20 @@ const PublicSite = () => {
                   <p className="text-xl font-bold">{CLINIC_INFO.hours}</p>
                 </div>
               </div>
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-start gap-6 group"
+              >
+                <div className="w-12 h-12 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-[#5AACE6] shrink-0 group-hover:border-[#B3D9F5] transition-all">
+                  <Instagram className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Instagram</p>
+                  <p className="text-xl font-bold group-hover:text-[#5AACE6] transition-colors">@doctorplusclinic.kg</p>
+                </div>
+              </a>
             </div>
 
             <div className="bg-[#B3D9F5]/20 p-8 rounded-[2rem] space-y-4">
@@ -831,6 +847,15 @@ const PublicSite = () => {
                   >
                     Позвонить в клинику
                     <Phone className="w-5 h-5 text-[#5AACE6]" />
+                  </a>
+                  <a
+                    href={INSTAGRAM_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bg-white text-[#1A2B3C] px-8 py-5 rounded-[1.75rem] font-black text-lg border-2 border-slate-100 hover:border-[#B3D9F5] transition-all flex items-center justify-center gap-3"
+                  >
+                    Instagram
+                    <Instagram className="w-5 h-5 text-[#5AACE6]" />
                   </a>
                 </div>
               </div>

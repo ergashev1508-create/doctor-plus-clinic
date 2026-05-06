@@ -119,6 +119,9 @@ export const AdminDashboard: React.FC = () => {
     });
   }, [appointments, searchTerm, doctorFilter, statusFilter, dateFilter]);
 
+  const scheduleTimes = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+  const todayDateKey = new Date().toISOString().split('T')[0];
+
   const activeTabMeta = TAB_META.find((tab) => tab.id === activeTab) || TAB_META[0];
   const unreadCount = logs.filter((log) => !log.isRead).length;
 
@@ -544,7 +547,7 @@ export const AdminDashboard: React.FC = () => {
                       ))}
                     </div>
 
-                    {['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'].map((time) => (
+                    {scheduleTimes.map((time) => (
                       <div key={time} className="grid grid-cols-[120px_repeat(4,1fr)] border-t border-slate-100">
                         <div className="px-4 py-4 bg-slate-50 border-r border-slate-100 text-sm font-bold text-slate-500">{time}</div>
                         {doctors.map((doctor) => {
@@ -552,7 +555,7 @@ export const AdminDashboard: React.FC = () => {
                             (appointment) =>
                               appointment.doctorId === doctor.id &&
                               appointment.appointmentTime === time &&
-                              appointment.appointmentDate === new Date().toISOString().split('T')[0] &&
+                              appointment.appointmentDate === todayDateKey &&
                               appointment.status !== 'Отменена'
                           );
 
@@ -571,7 +574,7 @@ export const AdminDashboard: React.FC = () => {
                         })}
                       </div>
                     ))}
-                  </div>
+                    </div>
                 </div>
               </section>
             )}
