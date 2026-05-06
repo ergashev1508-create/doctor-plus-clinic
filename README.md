@@ -1,4 +1,4 @@
-# Doctor Plus 
+# Doctor Plus Clinic
 
 Website and booking system for the Doctor Plus medical center in Bishkek.
 
