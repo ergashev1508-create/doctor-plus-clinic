@@ -228,6 +228,12 @@ const replacementMap = new Map<string, string>([
 ]);
 
 const validStatuses = new Set(["Новая", "Подтверждена", "Завершена", "Отменена"]);
+const doctorPhotoById: Record<string, string> = {
+  "kabylov-zhyldyzbek-saparovich": "/doctors/kabylov-zhyldyzbek-saparovich.jpeg",
+  "sultangazy-kyzy-nazgul": "/doctors/sultangazy-kyzy-nazgul.webp",
+  "kabulova-gulbara-saparalievna": "/doctors/kabulova-gulbara-saparalievna.webp",
+  "moldosheva-gulzat-sharshebaevna": "/doctors/moldosheva-gulzat-sharshebaevna.webp",
+};
 
 function cleanString(value: unknown) {
   if (typeof value !== "string") {
@@ -242,12 +248,14 @@ function cleanString(value: unknown) {
 }
 
 function normalizeDoctorRecord(doctor: DoctorRecord): DoctorRecord {
+  const id = cleanString(doctor.id);
+
   return {
-    id: cleanString(doctor.id),
+    id,
     name: cleanString(doctor.name),
     specialty: cleanString(doctor.specialty),
     department: cleanString(doctor.department),
-    photoUrl: cleanString(doctor.photoUrl),
+    photoUrl: doctorPhotoById[id] || cleanString(doctor.photoUrl),
     rating: Number.isFinite(doctor.rating) ? doctor.rating : 5,
     schedule: cleanString(doctor.schedule),
   };
