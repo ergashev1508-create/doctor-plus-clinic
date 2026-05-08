@@ -371,7 +371,7 @@ export default function AppRedesign() {
               <div className="rounded-[1.8rem] bg-[#eef3fb] p-5">
                 <Phone className="h-5 w-5 text-[#316da8]" />
                 <p className="mt-4 text-sm font-black text-[#17314c]">Регистратура</p>
-                <p className="mt-2 text-sm text-[#627384]">+996 (555) 060-601</p>
+                <p className="mt-2 text-sm text-[#627384]">+996 (702) 018-112</p>
               </div>
               <div className="rounded-[1.8rem] bg-[#fff5e9] p-5">
                 <Calendar className="h-5 w-5 text-[#b46a15]" />

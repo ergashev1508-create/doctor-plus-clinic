@@ -87,6 +87,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
     [bookableServices, doctorLocked, initialDoctor, selection.department]
   );
   const selectedService = bookableServices.find((item) => item.id === selection.serviceId);
+  const hasRealDoctorPhoto = (doctor: Doctor) => !doctor.photoUrl.endsWith('.svg');
 
   const doctorsForService = useMemo(() => {
     if (!selectedService) return [];
@@ -102,7 +103,10 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
     if (!selectedDoctor) return [];
     const scheduleByDoctorId: Record<string, { start: number; end: number }> = {
       'procedure-room': { start: 8, end: 18 },
-      'logoped-room': { start: 9, end: 17 },
+      'logoped-room': { start: 11, end: 17 },
+      'tolkun-abdysultanovna-esenova': { start: 13, end: 18 },
+      'iliyasova-zarina-sovetbekovna': { start: 9, end: 13 },
+      'mansur-nigmat': { start: 9, end: 16 },
       'moldosheva-gulzat-sharshebaevna': { start: 10, end: 16 },
       'kabulova-gulbara-saparalievna': { start: 9, end: 16 },
       'sultangazy-kyzy-nazgul': { start: 8, end: 14 },
@@ -125,6 +129,18 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
     if (doctorId === 'kabulova-gulbara-saparalievna') {
       const day = new Date(`${date}T00:00:00`).getDay();
       return day >= 1 && day <= 5;
+    }
+    if (doctorId === 'logoped-room') {
+      const day = new Date(`${date}T00:00:00`).getDay();
+      return day === 3 || day === 5;
+    }
+    if (doctorId === 'tolkun-abdysultanovna-esenova' || doctorId === 'iliyasova-zarina-sovetbekovna') {
+      const day = new Date(`${date}T00:00:00`).getDay();
+      return day >= 1 && day <= 6;
+    }
+    if (doctorId === 'mansur-nigmat') {
+      const day = new Date(`${date}T00:00:00`).getDay();
+      return day >= 1 && day <= 6;
     }
     return true;
   };
@@ -393,10 +409,12 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
                   <div className="flex-1 text-left">
                     <div className="flex flex-wrap items-center gap-2 text-xl font-bold">
                       {doctor.name}
-                      <div className="flex items-center gap-1 rounded-lg bg-yellow-50 px-2 py-0.5 text-sm text-yellow-600">
-                        <Star className="h-3 w-3 fill-current" />
-                        {doctor.rating}
-                      </div>
+                      {hasRealDoctorPhoto(doctor) && (
+                        <div className="flex items-center gap-1 rounded-lg bg-yellow-50 px-2 py-0.5 text-sm text-yellow-600">
+                          <Star className="h-3 w-3 fill-current" />
+                          {doctor.rating}
+                        </div>
+                      )}
                     </div>
                     <div className="text-sm font-bold uppercase text-[#5AACE6]">{doctor.specialty}</div>
                     <div className="mt-1 text-xs text-slate-400">{doctor.schedule}</div>
@@ -485,24 +503,29 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({ initialDoctor }) => {
                     Проверяем доступные слоты...
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 gap-2">
-                    {getTimeSlots().map((time) => (
-                      <button
-                        key={time}
-                        onClick={() => setSelection((current) => ({ ...current, time }))}
-                        disabled={availableSlots[time] === false}
-                        className={cn(
-                          'rounded-xl border-2 py-3 text-sm font-bold transition-all',
-                          selection.time === time
-                            ? 'border-[#5AACE6] bg-[#5AACE6] text-white shadow-lg shadow-blue-200'
-                            : 'border-slate-50 text-slate-600 hover:border-[#B3D9F5]',
-                          availableSlots[time] === false &&
-                            'cursor-not-allowed bg-slate-50 text-slate-300 opacity-40 hover:border-slate-50'
-                        )}
-                      >
-                        {time}
-                      </button>
-                    ))}
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2">
+                      {getTimeSlots().map((time) => (
+                        <button
+                          key={time}
+                          onClick={() => setSelection((current) => ({ ...current, time }))}
+                          disabled={availableSlots[time] === false}
+                          className={cn(
+                            'rounded-xl border-2 py-3 text-sm font-bold transition-all',
+                            selection.time === time
+                              ? 'border-[#5AACE6] bg-[#5AACE6] text-white shadow-lg shadow-blue-200'
+                              : 'border-slate-50 text-slate-600 hover:border-[#B3D9F5]',
+                            availableSlots[time] === false &&
+                              'cursor-not-allowed bg-slate-50 text-slate-300 opacity-40 hover:border-slate-50'
+                          )}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Слоты показывают время начала записи. Если кабинет работает до 18:00, последний слот обычно 17:30.
+                    </p>
                   </div>
                 )}
               </div>

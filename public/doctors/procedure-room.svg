@@ -1,0 +1,6 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="240" height="240" rx="56" fill="#E8F4FD"/>
+  <circle cx="120" cy="92" r="42" fill="#5AACE6" opacity=".95"/>
+  <path d="M58 198c8-44 32-68 62-68s54 24 62 68" fill="#5AACE6" opacity=".28"/>
+  <text x="120" y="106" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="900" fill="#1A2B3C">ПК</text>
+</svg>

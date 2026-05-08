@@ -16,6 +16,8 @@ import {
   Stethoscope,
   Activity,
   Microscope,
+  Ear,
+  Venus,
   ShieldCheck,
   ArrowRight
 } from 'lucide-react';
@@ -29,7 +31,7 @@ import { AdminLogin } from './components/Admin/AdminLogin';
 import { cn } from './lib/utils';
 import type { Doctor, Review } from './types';
 
-const CATEGORY_ORDER = ['Консультации', 'УЗИ', 'Эфферентология', 'Аурикулотерапия', 'Логопед-дефектолог', 'Процедурный кабинет', 'ЭКГ'];
+const CATEGORY_ORDER = ['Консультации', 'УЗИ', 'Гинекология', 'ЛОР', 'Эфферентология', 'Аурикулотерапия', 'Логопед-дефектолог', 'Процедурный кабинет', 'ЭКГ'];
 const CLINIC_MAP_URL =
   'https://2gis.kg/bishkek/search/%D1%83%D0%BB.%20%D0%9C%D0%B0%D1%85%D0%B0%D1%82%D0%BC%D1%8B%20%D0%93%D0%B0%D0%BD%D0%B4%D0%B8%2C%20201';
 const INSTAGRAM_URL = 'https://www.instagram.com/doctorplusclinic.kg/';
@@ -252,10 +254,9 @@ const PublicSite = () => {
   const [activeTab, setActiveTab] = useState('Все');
   const [activePriceCategory, setActivePriceCategory] = useState(CATEGORY_ORDER[0]);
   const [bookingDoctor, setBookingDoctor] = useState<Doctor | null>(null);
-  const [newReview, setNewReview] = useState({ author: '', rating: 5, text: '', doctorId: '' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasRealDoctorPhoto = (doctor: Doctor) => !doctor.photoUrl.endsWith('.svg');
 
   useEffect(() => {
     const init = async () => {
@@ -290,25 +291,10 @@ const PublicSite = () => {
     scrollSection('booking');
   };
 
-  const handleReviewSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-    try {
-      await api.submitReview(newReview);
-      setNewReview({ author: '', rating: 5, text: '', doctorId: '' });
-      setReviews(await api.getReviews());
-    } catch (err) {
-      console.error(err);
-      alert('Не удалось отправить отзыв. Попробуйте ещё раз.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const extraDoctorDepartments: Record<string, string[]> = {
     'moldosheva-gulzat-sharshebaevna': ['УЗИ-диагностика'],
   };
-  const serviceProfileIds = new Set(['procedure-room', 'logoped-room']);
+  const serviceProfileIds = new Set(['procedure-room']);
   const doctorDepartments = (doctor: Doctor) => [doctor.department, ...(extraDoctorDepartments[doctor.id] || [])];
   const sortSpecialists = (items: Doctor[]) =>
     items.slice().sort((a, b) => {
@@ -319,6 +305,7 @@ const PublicSite = () => {
   const filteredDoctors = activeTab === 'Все'
     ? sortSpecialists(doctors)
     : sortSpecialists(doctors.filter((doctor) => doctorDepartments(doctor).includes(activeTab)));
+  const plasmaDoctor = doctors.find((doctor) => doctor.id === 'kabylov-zhyldyzbek-saparovich');
   const priceCategories = CATEGORY_ORDER.filter((category) => PRICES.some((price) => price.category === category));
   const activePriceItems = PRICES.filter((price) => price.category === activePriceCategory);
   const featuredBookableServices = PRICES.filter((price) => price.bookable !== false).slice(0, 4);
@@ -464,24 +451,55 @@ const PublicSite = () => {
 
       <div className="relative z-30 -mt-8 sm:-mt-10 lg:-mt-14">
         <div className="max-w-7xl mx-auto px-8 relative">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
           {[
             { label: 'Терапия', icon: Stethoscope },
             { label: 'УЗИ', icon: Microscope },
             { label: 'Педиатрия', icon: Heart },
             { label: 'Плазмаферез', icon: Activity },
+            { label: 'Гинекология', icon: Venus },
+            { label: 'Логопед', icon: MessageSquare },
+            { label: 'ЛОР', icon: Ear },
           ].map((item) => (
             <div
               key={item.label}
-              className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] shadow-xl border border-[#B3D9F5]/30 flex items-center gap-6 group hover:translate-y-[-4px] transition-all"
+              className="group flex min-h-[112px] flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-[#B3D9F5]/30 bg-white/85 p-4 text-center shadow-lg shadow-slate-200/50 backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-[#5AACE6]/50 hover:bg-white"
             >
-              <div className="w-12 h-12 rounded-2xl bg-[#5AACE6] flex items-center justify-center text-white shadow-lg shadow-blue-100 group-hover:scale-110 transition-transform">
-                <item.icon className="w-6 h-6" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#5AACE6] text-white shadow-lg shadow-blue-100 transition-transform group-hover:scale-110">
+                <item.icon className="h-5 w-5" />
               </div>
-              <span className="font-black text-lg uppercase tracking-tighter leading-none">{item.label}</span>
+              <span className="text-sm font-black uppercase leading-tight tracking-tight text-[#1A2B3C]">{item.label}</span>
             </div>
           ))}
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = '/plasmapheresis';
+            }}
+            className="mt-5 group w-full overflow-hidden rounded-[2rem] border border-[#B3D9F5]/40 bg-white/90 p-6 text-left shadow-xl shadow-slate-200/60 transition-all hover:-translate-y-1 hover:border-[#5AACE6]/60 hover:shadow-2xl"
+          >
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-5">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#1A2B3C] text-white">
+                  <Activity className="h-7 w-7" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#5AACE6]">Hemofenix</p>
+                  <h3 className="mt-1 text-2xl font-black uppercase tracking-tighter text-[#1A2B3C]">Плазмаферез</h3>
+                  <p className="mt-1 max-w-2xl text-sm font-bold leading-relaxed text-slate-500">
+                    Отдельная страница с описанием процедуры, показаниями и записью к специалисту.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 text-sm font-black uppercase tracking-widest text-[#1A2B3C]">
+                Узнать подробнее
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E8F4FD] text-[#5AACE6] transition-transform group-hover:translate-x-1">
+                  <ArrowRight className="h-5 w-5" />
+                </span>
+              </div>
+            </div>
+          </button>
         </div>
       </div>
 
@@ -514,10 +532,10 @@ const PublicSite = () => {
               <motion.div
                 key={doctor.id}
                 layout
-                className="bg-[#F8FCFF] rounded-[3rem] p-8 border-2 border-slate-50 hover:border-[#B3D9F5]/30 transition-all shadow-sm flex flex-col"
+                className="bg-[#F8FCFF] rounded-[2.4rem] p-6 border-2 border-slate-50 hover:border-[#B3D9F5]/30 transition-all shadow-sm flex flex-col"
               >
-                <div className="flex items-start gap-5 mb-6">
-                  <div className="w-24 h-24 rounded-[2rem] overflow-hidden shadow-lg shrink-0">
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-20 h-20 rounded-[1.65rem] overflow-hidden shadow-lg shrink-0">
                     <img
                       src={doctor.photoUrl}
                       alt={doctor.name}
@@ -527,30 +545,32 @@ const PublicSite = () => {
                         event.currentTarget.parentElement?.classList.add('doctor-photo-fallback');
                       }}
                     />
-                    <div className="hidden h-full w-full items-center justify-center bg-[#E8F4FD] text-3xl font-black text-[#5AACE6]">
+                    <div className="hidden h-full w-full items-center justify-center bg-[#E8F4FD] text-2xl font-black text-[#5AACE6]">
                       {doctor.name.slice(0, 1)}
                     </div>
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-[10px] font-black uppercase text-[#5AACE6] tracking-[0.2em]">{doctor.department}</span>
-                      <div className="flex items-center gap-1 bg-yellow-50 text-yellow-600 px-2 py-0.5 rounded-lg">
-                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                        <span className="text-xs font-black">{doctor.rating}</span>
-                      </div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[9px] font-black uppercase text-[#5AACE6] tracking-[0.18em]">{doctor.department}</span>
+                      {hasRealDoctorPhoto(doctor) && (
+                        <div className="flex items-center gap-1 bg-yellow-50 text-yellow-600 px-2 py-0.5 rounded-lg">
+                          <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                          <span className="text-xs font-black">{doctor.rating}</span>
+                        </div>
+                      )}
                     </div>
-                    <h3 className="text-2xl font-black leading-tight mb-3">{doctor.name}</h3>
-                    <p className="text-sm font-bold text-slate-500 mb-2">{doctor.specialty}</p>
-                    <div className="flex items-center gap-3 text-slate-400">
+                    <h3 className="text-xl font-black leading-tight mb-2">{doctor.name}</h3>
+                    <p className="text-sm font-bold text-slate-500 mb-1.5">{doctor.specialty}</p>
+                    <div className="flex items-center gap-2 text-slate-400">
                       <Clock className="w-4 h-4 text-[#5AACE6]" />
-                      <span className="text-sm font-bold">{doctor.schedule}</span>
+                      <span className="text-xs font-bold">{doctor.schedule}</span>
                     </div>
                   </div>
                 </div>
-                <p className="text-slate-500 font-medium leading-relaxed mb-8">{doctor.education}</p>
+                <p className="text-sm text-slate-500 font-medium leading-relaxed mb-5 line-clamp-3">{doctor.education}</p>
                 <button
                   onClick={() => startDoctorBooking(doctor)}
-                  className="mt-auto w-full py-4 rounded-2xl bg-white border-2 border-slate-100 font-bold hover:bg-[#1A2B3C] hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
+                  className="mt-auto w-full py-3.5 rounded-2xl bg-white border-2 border-slate-100 font-bold hover:bg-[#1A2B3C] hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
                 >
                   Записаться
                   <ChevronRight className="w-4 h-4" />
@@ -558,6 +578,83 @@ const PublicSite = () => {
               </motion.div>
             ))}
           </AnimatePresence>
+        </div>
+      </section>
+
+      <section className="hidden">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden border border-[#DDEDFC] bg-[linear-gradient(135deg,#10243a_0%,#1A2B3C_46%,#eaf8f4_46%,#ffffff_100%)] shadow-[0_30px_80px_rgba(26,43,60,0.14)]">
+            <div className="grid grid-cols-1 lg:grid-cols-12">
+              <div className="lg:col-span-5 p-8 md:p-12 text-white">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#B3D9F5]">
+                  <Activity className="w-4 h-4" />
+                  Плазмаферез
+                </div>
+                <h2 className="mt-6 text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+                  Мембранный плазмаферез на Hemofenix
+                </h2>
+                <p className="mt-6 text-base md:text-lg font-medium leading-relaxed text-slate-200">
+                  В клинике используется аппарат Hemofenix — современная система для мембранного плазмафереза. По информации клиники, это единственный такой аппарат в городе.
+                </p>
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {['Аппаратная очистка плазмы', 'По назначению специалиста', 'Контроль врача', 'Комфортная запись онлайн'].map((item) => (
+                    <div key={item} className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 text-sm font-bold text-white">
+                      <CheckCircle className="h-4 w-4 shrink-0 text-[#5AACE6]" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lg:col-span-7 p-6 md:p-10">
+                <div className="grid h-full grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="rounded-[2rem] bg-white p-7 shadow-[0_18px_45px_rgba(20,45,75,0.08)] border border-[#E3EEF9]">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5AACE6]">Курс процедуры</p>
+                    <h3 className="mt-3 text-2xl font-black text-[#1A2B3C]">Плазмаферез</h3>
+                    <p className="mt-3 text-sm font-bold leading-relaxed text-slate-500">
+                      Эфферентная процедура по назначению специалиста.
+                    </p>
+                    <div className="mt-6 rounded-2xl bg-[#F0F8FF] px-5 py-4">
+                      <p className="text-3xl font-black text-[#1A2B3C]">5000 сом</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[#5AACE6]">60-90 мин</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[2rem] bg-[#F8FCFF] p-7 shadow-[0_18px_45px_rgba(20,45,75,0.08)] border-2 border-[#B3D9F5]">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5AACE6]">Hemofenix</p>
+                    <h3 className="mt-3 text-2xl font-black text-[#1A2B3C]">Мембранный плазмаферез</h3>
+                    <p className="mt-3 text-sm font-bold leading-relaxed text-slate-500">
+                      Более технологичный вариант процедуры на аппарате Hemofenix.
+                    </p>
+                    <div className="mt-6 rounded-2xl bg-white px-5 py-4 ring-1 ring-[#DDEDFC]">
+                      <p className="text-3xl font-black text-[#1A2B3C]">20000 сом</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[#5AACE6]">90-120 мин</p>
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2 flex flex-col gap-4 rounded-[2rem] bg-white/80 p-6 border border-[#E3EEF9] md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Специалист</p>
+                      <p className="mt-1 text-xl font-black text-[#1A2B3C]">Кабылов Жылдызбек Сапарович</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (plasmaDoctor) {
+                          startDoctorBooking(plasmaDoctor);
+                        } else {
+                          scrollSection('booking');
+                        }
+                      }}
+                      className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[#1A2B3C] px-7 py-4 text-sm font-black uppercase tracking-widest text-white shadow-xl shadow-slate-900/10 transition-all hover:bg-[#2A3B4C]"
+                    >
+                      Записаться
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -673,7 +770,7 @@ const PublicSite = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedReviews.map((review, index) => (
               <div key={review.id || index} className="bg-white/5 border border-white/10 p-10 rounded-[3rem] hover:bg-white/10 transition-all flex flex-col gap-6">
                 <div className="flex justify-between items-start">
@@ -703,56 +800,6 @@ const PublicSite = () => {
             ))}
           </div>
 
-          <div className="max-w-4xl mx-auto bg-white text-[#1A2B3C] rounded-[3rem] p-12 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#E8F4FD] rounded-full -mr-16 -mt-16" />
-            <h3 className="text-4xl font-black tracking-tighter uppercase mb-10 text-center">Оставить отзыв</h3>
-
-            <form onSubmit={handleReviewSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-2">Ваше имя</label>
-                <input
-                  required
-                  className="w-full p-5 rounded-2xl bg-slate-50 border-2 border-slate-50 focus:border-[#5AACE6] focus:bg-white outline-none transition-all font-bold"
-                  placeholder="Александр"
-                  value={newReview.author}
-                  onChange={(event) => setNewReview({ ...newReview, author: event.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-2">Оценка</label>
-                <div className="flex gap-4 h-[64px] items-center">
-                  {[1, 2, 3, 4, 5].map((score) => (
-                    <button
-                      key={score}
-                      type="button"
-                      onClick={() => setNewReview({ ...newReview, rating: score })}
-                      className="hover:scale-125 transition-transform"
-                    >
-                      <Star className={cn('w-8 h-8', score <= newReview.rating ? 'text-yellow-400 fill-current' : 'text-slate-100 fill-current')} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="md:col-span-2 space-y-2">
-                <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-2">Текст отзыва</label>
-                <textarea
-                  required
-                  className="w-full p-8 rounded-3xl bg-slate-50 border-2 border-slate-50 focus:border-[#5AACE6] focus:bg-white outline-none transition-all font-medium min-h-[150px] resize-none text-lg"
-                  placeholder="Поделитесь впечатлениями о приёме"
-                  value={newReview.text}
-                  onChange={(event) => setNewReview({ ...newReview, text: event.target.value })}
-                />
-              </div>
-              <div className="md:col-span-2">
-                <button
-                  disabled={isSubmitting}
-                  className="w-full bg-[#1A2B3C] text-white py-6 rounded-[1.5rem] font-black text-2xl shadow-xl shadow-slate-900/10 hover:bg-[#2A3B4C] transition-all"
-                >
-                  {isSubmitting ? 'Отправка...' : 'Отправить отзыв'}
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
       </section>
 
@@ -903,11 +950,309 @@ const PublicSite = () => {
   );
 };
 
+const PlasmapheresisPage = () => {
+  const [plasmaDoctor, setPlasmaDoctor] = useState<Doctor | null>(null);
+
+  useEffect(() => {
+    api.getDoctors()
+      .then((items) => {
+        setPlasmaDoctor(items.find((doctor) => doctor.id === 'kabylov-zhyldyzbek-saparovich') || null);
+      })
+      .catch((error) => console.error('Failed to load plasmapheresis doctor', error));
+  }, []);
+
+  const benefits = [
+    'Современный способ аппаратной очистки крови',
+    'Проводится по назначению и после консультации специалиста',
+    'В центре доступны мембранный и дискретный плазмаферез',
+    'Также проводятся ВЛОК и УФО крови',
+  ];
+
+  const mechanisms = [
+    {
+      title: 'Поддержка иммунной системы',
+      text: 'Процедура помогает снизить нагрузку факторов, которые поддерживают хроническое воспаление.',
+    },
+    {
+      title: 'Выведение токсических веществ',
+      text: 'С удаляемой плазмой выводятся токсины и нежелательные биологически активные вещества.',
+    },
+    {
+      title: 'Улучшение текучести крови',
+      text: 'После фильтрации кровь становится менее вязкой, что помогает микроциркуляции.',
+    },
+  ];
+
+  const indications = [
+    'аллергология и дерматология',
+    'эндокринология',
+    'ревматология',
+    'гастроэнтерология',
+    'неврология',
+    'нефрология',
+    'акушерство и гинекология',
+    'токсикология и другие направления',
+  ];
+
+  const detailedIndications = [
+    {
+      title: 'Дерматология',
+      text: 'Острые и хронические дерматиты, дерматозы, хроническая экзема, псориаз и другие кожные заболевания.',
+    },
+    {
+      title: 'Аллергология',
+      text: 'Поллинозы, аллергический дерматит, крапивница и другие аллергические состояния.',
+    },
+    {
+      title: 'Эндокринология',
+      text: 'Сахарный диабет и его осложнения, заболевания щитовидной железы, аутоиммунный тиреоидит, тиреотоксикоз.',
+    },
+    {
+      title: 'Хирургия',
+      text: 'Гнойно-септические состояния, сепсис, желтуха, острый панкреатит, перитонит, ДВС-синдром и ожоговая болезнь.',
+    },
+    {
+      title: 'Акушерство и гинекология',
+      text: 'Хронические воспалительные заболевания, подготовка к ЭКО, резус-конфликты при беременности, генитальный герпес, цитомегаловирус.',
+    },
+    {
+      title: 'Ревматология',
+      text: 'Ревматоидный артрит, системная красная волчанка, склеродермия и узелковый периартериит.',
+    },
+    {
+      title: 'Пульмонология',
+      text: 'Тяжелые формы бронхиальной астмы и фиброзирующий альвеолит.',
+    },
+    {
+      title: 'Гастроэнтерология',
+      text: 'Хронические гепатиты, циррозы печени, хронический панкреатит, неспецифический язвенный колит.',
+    },
+    {
+      title: 'Неврология',
+      text: 'Синдром Гийена-Барре, миастения, демиелинизирующие заболевания и рассеянный склероз.',
+    },
+    {
+      title: 'Нефрология',
+      text: 'Острый гломерулонефрит, уремический зуд, состояния после пересадки органов.',
+    },
+  ];
+
+  const sessionSteps = [
+    'На первом сеансе из крови удаляется часть токсинов.',
+    'На втором сеансе удаляются токсины, которые переходят в кровь из межклеточной жидкости.',
+    'Во время третьего сеанса очищение затрагивает более глубокий уровень обменных процессов.',
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#F8FCFF] text-[#1A2B3C]">
+      <header className="border-b border-[#DDEDFC] bg-white/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#5AACE6] text-2xl font-black text-white">+</div>
+            <div>
+              <p className="text-xl font-black uppercase leading-none tracking-tighter">{CLINIC_INFO.name}</p>
+              <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.22em] text-slate-400">Медцентр Бишкек</p>
+            </div>
+          </Link>
+          <Link to="/" className="rounded-2xl border border-[#DDEDFC] bg-white px-5 py-3 text-xs font-black uppercase tracking-widest text-[#1A2B3C] hover:border-[#5AACE6]">
+            На главную
+          </Link>
+        </div>
+      </header>
+
+      <main>
+        <section className="overflow-hidden bg-[linear-gradient(135deg,#10243a_0%,#1A2B3C_58%,#dff2ee_58%,#ffffff_100%)]">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-16 md:py-24 lg:grid-cols-12">
+            <div className="lg:col-span-7">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#B3D9F5]">
+                <Activity className="h-4 w-4" />
+                Плазмаферез
+              </div>
+              <h1 className="mt-6 max-w-4xl text-5xl font-black uppercase leading-none tracking-tighter text-white md:text-7xl">
+                Что такое плазмаферез?
+              </h1>
+              <p className="mt-7 max-w-2xl text-lg font-medium leading-relaxed text-slate-200">
+                Плазмаферез это современный метод аппаратной очистки крови. Врач-эфферентолог помогает организму избавиться от вредных веществ и снизить токсическую нагрузку.
+              </p>
+              <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {benefits.map((item) => (
+                  <div key={item} className="flex items-center gap-3 rounded-2xl bg-[#263b51] px-4 py-3 text-sm font-bold text-white shadow-sm ring-1 ring-white/10">
+                    <CheckCircle className="h-4 w-4 shrink-0 text-[#5AACE6]" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="lg:col-span-5">
+              <div className="rounded-[2.5rem] border border-white/70 bg-white p-7 shadow-[0_30px_80px_rgba(26,43,60,0.18)]">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#5AACE6]">Аппарат</p>
+                <h2 className="mt-3 text-4xl font-black uppercase tracking-tighter">Hemofenix</h2>
+                <p className="mt-4 text-base font-bold leading-relaxed text-slate-500">
+                В клинике используется аппарат Hemofenix для мембранного плазмафереза. Это единственный такой аппарат в городе и один из лучших вариантов оборудования для проведения процедуры.
+                </p>
+                <div className="mt-6 rounded-3xl bg-[#F0F8FF] p-5">
+                  <p className="text-sm font-black uppercase tracking-widest text-slate-400">Мембранный плазмаферез</p>
+                  <p className="mt-2 text-4xl font-black">20000 сом</p>
+                  <p className="mt-1 text-xs font-black uppercase tracking-widest text-[#5AACE6]">90-120 мин</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="hidden">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="mb-10 max-w-3xl">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#5AACE6]">Подробно</p>
+              <h2 className="mt-3 text-4xl font-black uppercase tracking-tighter">Показания и курс процедур</h2>
+              <p className="mt-5 text-lg font-medium leading-relaxed text-slate-500">
+                Ниже собраны расширенные направления из материалов клиники. Они не заменяют консультацию: точное решение принимает врач после осмотра.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {detailedIndications.map((item) => (
+                <details key={item.title} className="group rounded-[1.7rem] border border-[#E3EEF9] bg-white p-5 shadow-[0_16px_35px_rgba(20,45,75,0.04)]">
+                  <summary className="cursor-pointer list-none text-lg font-black text-[#1A2B3C]">
+                    <span className="inline-flex w-full items-center justify-between gap-4">
+                      {item.title}
+                      <span className="rounded-full bg-[#F0F8FF] px-3 py-1 text-xs text-[#5AACE6] group-open:rotate-180">⌄</span>
+                    </span>
+                  </summary>
+                  <p className="mt-4 font-medium leading-relaxed text-slate-500">{item.text}</p>
+                </details>
+              ))}
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="rounded-[2rem] border border-[#DDEDFC] bg-white p-7">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#5AACE6]">Курс</p>
+                <h3 className="mt-3 text-2xl font-black">Обычно требуется 3-5 сеансов</h3>
+                <div className="mt-5 space-y-3">
+                  {sessionSteps.map((step, index) => (
+                    <div key={step} className="flex gap-4 rounded-2xl bg-[#F8FCFF] p-4">
+                      <span className="font-black text-[#5AACE6]">0{index + 1}</span>
+                      <p className="font-bold leading-relaxed text-slate-600">{step}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-[#DDEDFC] bg-[#1A2B3C] p-7 text-white">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#B3D9F5]">Перед процедурой</p>
+                <h3 className="mt-3 text-2xl font-black">Бесплатная консультация</h3>
+                <p className="mt-4 font-medium leading-relaxed text-slate-200">
+                  Перед плазмаферезом проводится консультация, где пациент может задать вопросы, обсудить показания, противопоказания и подходящий вариант процедуры.
+                </p>
+                <p className="mt-5 rounded-2xl bg-white/10 p-4 text-sm font-bold text-white">
+                  Также в клинике проводятся ВЛОК и УФО крови.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 md:py-24">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 lg:grid-cols-12">
+            <div className="lg:col-span-5">
+              <h2 className="text-4xl font-black uppercase tracking-tighter">Как работает процедура</h2>
+              <p className="mt-5 text-lg font-medium leading-relaxed text-slate-500">
+                Лечебное и профилактическое действие плазмафереза связано с тремя основными механизмами: поддержкой иммунной системы, выведением токсинов и улучшением текучести крови.
+              </p>
+            </div>
+            <div className="lg:col-span-7 grid grid-cols-1 gap-4">
+              {mechanisms.map((item, index) => (
+                <div key={item.title} className="rounded-[2rem] border border-[#E3EEF9] bg-white p-6 shadow-[0_18px_45px_rgba(20,45,75,0.04)]">
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#5AACE6]">0{index + 1}</p>
+                  <h3 className="mt-2 text-2xl font-black">{item.title}</h3>
+                  <p className="mt-3 font-medium leading-relaxed text-slate-500">{item.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white py-16 md:py-24">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="rounded-[2.5rem] border border-[#DDEDFC] bg-[#F8FCFF] p-6 md:p-8">
+              <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,0.9fr)_auto_minmax(0,1.1fr)] lg:items-center">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#5AACE6]">Связь с лечением</p>
+                  <h2 className="mt-3 text-4xl font-black uppercase tracking-tighter">Показания к плазмаферезу</h2>
+                  <p className="mt-5 text-lg font-medium leading-relaxed text-slate-500">
+                    Плазмаферез рассматривают как дополнительный метод лечения в разных направлениях медицины. Ниже показаны области, где врач может назначить процедуру после консультации.
+                  </p>
+                </div>
+                <div className="hidden h-24 w-24 items-center justify-center rounded-full bg-white text-[#5AACE6] shadow-sm lg:flex">
+                  <ArrowRight className="h-8 w-8" />
+                </div>
+                <div className="rounded-[2rem] bg-white p-5 shadow-[0_16px_35px_rgba(20,45,75,0.04)]">
+                  <p className="text-sm font-black uppercase tracking-[0.16em] text-slate-400">Врач оценивает</p>
+                  <p className="mt-2 text-2xl font-black leading-tight">жалобы, диагноз, анализы и противопоказания</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {detailedIndications.map((item, index) => (
+                  <details key={item.title} className="group rounded-[1.7rem] border border-[#E3EEF9] bg-white p-5 shadow-[0_16px_35px_rgba(20,45,75,0.04)]">
+                    <summary className="cursor-pointer list-none">
+                      <span className="flex items-center gap-4">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F0F8FF] text-xs font-black text-[#5AACE6]">
+                          {index + 1}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-lg font-black leading-tight text-[#1A2B3C]">{item.title}</span>
+                          <span className="mt-1 block text-xs font-bold text-slate-400">Нажмите, чтобы посмотреть примеры показаний</span>
+                        </span>
+                        <span className="rounded-full bg-[#F0F8FF] px-3 py-1 text-xs text-[#5AACE6] group-open:rotate-180">⌄</span>
+                      </span>
+                    </summary>
+                    <p className="mt-4 rounded-2xl bg-[#F8FCFF] p-4 font-medium leading-relaxed text-slate-500">{item.text}</p>
+                  </details>
+                ))}
+              </div>
+
+              <div>
+                <div className="mt-8 rounded-[2rem] border border-rose-100 bg-rose-50 p-6">
+                  <p className="text-xs font-black uppercase tracking-widest text-rose-500">Важно</p>
+                  <p className="mt-3 font-bold leading-relaxed text-rose-900">
+                    У процедуры есть противопоказания, включая высокий риск кровотечений, острый инфаркт миокарда, декомпенсацию сердечно-сосудистой системы и другие состояния. Решение принимает только специалист после консультации.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 md:py-24">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="rounded-[2.5rem] border border-[#DDEDFC] bg-white p-6 shadow-[0_24px_70px_rgba(20,45,75,0.08)] md:p-10">
+              <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#5AACE6]">Онлайн-запись</p>
+                  <h2 className="mt-2 text-4xl font-black uppercase tracking-tighter">Записаться на плазмаферез</h2>
+                </div>
+                <a href={`tel:${CLINIC_INFO.phone.replace(/\D/g, '')}`} className="inline-flex items-center gap-3 rounded-2xl bg-[#1A2B3C] px-6 py-4 text-sm font-black uppercase tracking-widest text-white">
+                  <Phone className="h-4 w-4 text-[#5AACE6]" />
+                  {CLINIC_INFO.phone}
+                </a>
+              </div>
+              <BookingFlow initialDoctor={plasmaDoctor} />
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+};
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<PublicSite />} />
+        <Route path="/plasmapheresis" element={<PlasmapheresisPage />} />
         <Route path="/redesign" element={<AppRedesign />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route

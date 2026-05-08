@@ -121,9 +121,40 @@ export const AdminDashboard: React.FC = () => {
     });
   }, [appointments, searchTerm, doctorFilter, statusFilter, dateFilter]);
 
-  const scheduleTimes = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+  const scheduleTimes = [
+    '09:00',
+    '09:30',
+    '10:00',
+    '10:30',
+    '11:00',
+    '11:30',
+    '12:00',
+    '12:30',
+    '13:00',
+    '13:30',
+    '14:00',
+    '14:30',
+    '15:00',
+    '15:30',
+    '16:00',
+    '16:30',
+    '17:00',
+    '17:30',
+    '18:00',
+  ];
   const todayDateKey = new Date().toISOString().split('T')[0];
   const scheduleGridWidth = Math.max(1020, 120 + doctors.length * 200);
+  const getAppointmentsForScheduleSlot = (doctorId: string, time: string) => {
+    return appointments
+      .filter(
+        (appointment) =>
+          appointment.doctorId === doctorId &&
+          appointment.appointmentDate === todayDateKey &&
+          appointment.appointmentTime === time &&
+          appointment.status !== 'ÐžÑ‚Ð¼ÐµÐ½ÐµÐ½Ð°'
+      )
+      .sort((a, b) => a.appointmentTime.localeCompare(b.appointmentTime));
+  };
 
   const syncScheduleScroll = (
     event: React.UIEvent<HTMLDivElement>,
@@ -596,7 +627,7 @@ export const AdminDashboard: React.FC = () => {
                               {booked ? (
                                 <div className="h-full rounded-2xl bg-[#eef5fb] border border-[#d4e8f8] p-3">
                                   <p className="font-black text-sm truncate">{booked.patientFirstName} {booked.patientLastName}</p>
-                                  <p className="text-xs text-slate-500 mt-2">{booked.status}</p>
+                                  <p className="text-xs text-slate-500 mt-2">{booked.appointmentTime} · {booked.service}</p>
                                 </div>
                               ) : (
                                 <div className="h-full rounded-2xl border border-dashed border-slate-200 bg-slate-50/70" />

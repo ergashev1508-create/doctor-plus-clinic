@@ -126,12 +126,39 @@ const seedDoctors: DoctorRecord[] = [
   },
   {
     id: "logoped-room",
-    name: "Логопед-дефектолог",
-    specialty: "Консультации и занятия",
+    name: "Кабылова Саикал",
+    specialty: "Логопед-дефектолог",
     department: "Логопед-дефектолог",
     photoUrl: "/doctors/logoped-room.svg",
     rating: 5,
-    schedule: "По записи",
+    schedule: "Ср, Пт: 11:00 - 16:30",
+  },
+  {
+    id: "tolkun-abdysultanovna-esenova",
+    name: "Толкун Абдысултановна Эсенова",
+    specialty: "Гинеколог",
+    department: "Гинекология",
+    photoUrl: "/doctors/tolkun-abdysultanovna-esenova.svg",
+    rating: 5,
+    schedule: "Пн-Сб: 13:00 - 18:00",
+  },
+  {
+    id: "iliyasova-zarina-sovetbekovna",
+    name: "Илиясова Зарина Советовна",
+    specialty: "Гинеколог",
+    department: "Гинекология",
+    photoUrl: "/doctors/iliyasova-zarina-sovetbekovna.svg",
+    rating: 5,
+    schedule: "Пн-Сб: 09:00 - 13:00",
+  },
+  {
+    id: "mansur-nigmat",
+    name: "Мансур Нигмат",
+    specialty: "ЛОР-врач",
+    department: "ЛОР",
+    photoUrl: "/doctors/mansur-nigmat.svg",
+    rating: 5,
+    schedule: "Пн-Сб: 09:00 - 16:00",
   },
 ];
 
@@ -246,6 +273,13 @@ const replacementMap = new Map<string, string>([
 ]);
 
 const validStatuses = new Set(["Новая", "Подтверждена", "Завершена", "Отменена"]);
+const doctorNameById: Record<string, string> = {
+  "logoped-room": "Кабылова Саикал",
+  "tolkun-abdysultanovna-esenova": "Толкун Абдысултановна Эсенова",
+  "iliyasova-zarina-sovetbekovna": "Илиясова Зарина Советовна",
+  "mansur-nigmat": "Мансур Нигмат",
+};
+
 const doctorPhotoById: Record<string, string> = {
   "kabylov-zhyldyzbek-saparovich": "/doctors/kabylov-zhyldyzbek-saparovich.jpeg",
   "sultangazy-kyzy-nazgul": "/doctors/sultangazy-kyzy-nazgul.webp",
@@ -253,12 +287,19 @@ const doctorPhotoById: Record<string, string> = {
   "moldosheva-gulzat-sharshebaevna": "/doctors/moldosheva-gulzat-sharshebaevna.webp",
   "procedure-room": "/doctors/procedure-room.svg",
   "logoped-room": "/doctors/logoped-room.svg",
+  "tolkun-abdysultanovna-esenova": "/doctors/tolkun-abdysultanovna-esenova.svg",
+  "iliyasova-zarina-sovetbekovna": "/doctors/iliyasova-zarina-sovetbekovna.svg",
+  "mansur-nigmat": "/doctors/mansur-nigmat.svg",
 };
 
 const doctorScheduleById: Record<string, string> = {
   "kabylov-zhyldyzbek-saparovich": "По записи",
   "kabulova-gulbara-saparalievna": "Пн-Пт: 09:00 - 16:00",
   "moldosheva-gulzat-sharshebaevna": "Сб: 10:00 - 16:00",
+  "logoped-room": "Ср, Пт: 11:00 - 16:30",
+  "tolkun-abdysultanovna-esenova": "Пн-Сб: 13:00 - 18:00",
+  "iliyasova-zarina-sovetbekovna": "Пн-Сб: 09:00 - 13:00",
+  "mansur-nigmat": "Пн-Сб: 09:00 - 16:00",
 };
 
 const doctorDepartmentById: Record<string, string> = {
@@ -267,10 +308,17 @@ const doctorDepartmentById: Record<string, string> = {
   "moldosheva-gulzat-sharshebaevna": "Терапия",
   "procedure-room": "Процедурный кабинет",
   "logoped-room": "Логопед-дефектолог",
+  "tolkun-abdysultanovna-esenova": "Гинекология",
+  "iliyasova-zarina-sovetbekovna": "Гинекология",
+  "mansur-nigmat": "ЛОР",
 };
 
 const doctorSpecialtyById: Record<string, string> = {
   "kabylov-zhyldyzbek-saparovich": "Плазмаферез, эфферентная терапия",
+  "logoped-room": "Логопед-дефектолог",
+  "tolkun-abdysultanovna-esenova": "Гинеколог",
+  "iliyasova-zarina-sovetbekovna": "Гинеколог",
+  "mansur-nigmat": "ЛОР-врач",
 };
 
 function cleanString(value: unknown) {
@@ -290,7 +338,7 @@ function normalizeDoctorRecord(doctor: DoctorRecord): DoctorRecord {
 
   return {
     id,
-    name: cleanString(doctor.name),
+    name: doctorNameById[id] || cleanString(doctor.name),
     specialty: doctorSpecialtyById[id] || cleanString(doctor.specialty),
     department: doctorDepartmentById[id] || cleanString(doctor.department),
     photoUrl: doctorPhotoById[id] || cleanString(doctor.photoUrl),
