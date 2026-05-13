@@ -7,16 +7,18 @@ import { createServer as createViteServer } from "vite";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
 import {
-  hashAdminPassword,
-  initDb,
-  readStore,
-  updateStore,
-  verifyAdminCredentials,
   type BookingRecord,
   type DoctorRecord,
   type NotificationRecord,
   type PatientRecord,
 } from "./src/lib/db.ts";
+import {
+  hashAdminPassword,
+  initStorage,
+  readStorage,
+  updateStorage,
+  verifyAdminCredentialsStorage,
+} from "./src/lib/storage.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,8 +39,8 @@ const BOOKING_STATUS = {
   CANCELLED: "Отменена",
 } as const;
 
-const ACTIVE_STATUSES = new Set([BOOKING_STATUS.NEW, BOOKING_STATUS.CONFIRMED, BOOKING_STATUS.COMPLETED]);
-const ALLOWED_BOOKING_STATUSES = new Set(Object.values(BOOKING_STATUS));
+const ACTIVE_STATUSES = new Set<string>([BOOKING_STATUS.NEW, BOOKING_STATUS.CONFIRMED, BOOKING_STATUS.COMPLETED]);
+const ALLOWED_BOOKING_STATUSES = new Set<string>(Object.values(BOOKING_STATUS));
 const loginAttempts = new Map<string, { count: number; lockedUntil: number }>();
 
 function getClientKey(req: express.Request) {
@@ -74,8 +76,8 @@ function isBookingDateAllowed(date: string) {
   return selected >= today && selected <= latest;
 }
 
-function ensureDoctorExists(doctorId: string) {
-  return readStore().doctors.find((doctor) => doctor.id === doctorId) || null;
+async function ensureDoctorExists(doctorId: string) {
+  return (await readStorage()).doctors.find((doctor) => doctor.id === doctorId) || null;
 }
 
 function recordFailedLogin(key: string) {
@@ -141,7 +143,7 @@ function validateDoctorPayload(payload: unknown, existingId?: string): { ok: tru
 }
 
 async function startServer() {
-  initDb();
+  await initStorage();
 
   const app = express();
   const server = http.createServer(app);
@@ -173,15 +175,15 @@ async function startServer() {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
-  app.get("/api/doctors", (_req, res) => {
-    const doctors = readStore().doctors
+  app.get("/api/doctors", async (_req, res) => {
+    const doctors = (await readStorage()).doctors
       .slice()
       .sort((a, b) => b.rating - a.rating || a.name.localeCompare(b.name));
     res.json(doctors);
   });
 
-  app.get("/api/reviews", (_req, res) => {
-    const store = readStore();
+  app.get("/api/reviews", async (_req, res) => {
+    const store = await readStorage();
     const reviews = store.reviews
       .slice()
       .sort((a, b) => b.date.localeCompare(a.date))
@@ -193,7 +195,7 @@ async function startServer() {
     res.json(reviews);
   });
 
-  app.post("/api/reviews", (req, res) => {
+  app.post("/api/reviews", async (req, res) => {
     const author = cleanText(req.body?.author);
     const text = cleanText(req.body?.text);
     const rating = Number(req.body?.rating || 0);
@@ -214,12 +216,12 @@ async function startServer() {
       return;
     }
 
-    if (doctorId && !ensureDoctorExists(doctorId)) {
+    if (doctorId && !(await ensureDoctorExists(doctorId))) {
       res.status(400).json({ error: "Selected doctor for the review was not found." });
       return;
     }
 
-    const review = updateStore((store) => {
+    const review = await updateStorage((store) => {
       const item = {
         id: crypto.randomUUID(),
         author,
@@ -236,7 +238,7 @@ async function startServer() {
     res.status(201).json(review);
   });
 
-  app.get("/api/availability", (req, res) => {
+  app.get("/api/availability", async (req, res) => {
     const doctorId = cleanText(req.query.doctorId);
     const date = cleanText(req.query.date);
     const time = cleanText(req.query.time);
@@ -246,12 +248,12 @@ async function startServer() {
       return;
     }
 
-    if (!ensureDoctorExists(doctorId) || !isValidDate(date) || !isValidTime(time)) {
+    if (!(await ensureDoctorExists(doctorId)) || !isValidDate(date) || !isValidTime(time)) {
       res.status(400).json({ error: "Invalid availability parameters" });
       return;
     }
 
-    const taken = readStore().bookings.some(
+    const taken = (await readStorage()).bookings.some(
       (booking) =>
         booking.doctorId === doctorId &&
         booking.appointmentDate === date &&
@@ -262,7 +264,7 @@ async function startServer() {
     res.json({ available: !taken });
   });
 
-  app.post("/api/appointments", (req, res) => {
+  app.post("/api/appointments", async (req, res) => {
     const doctorId = cleanText(req.body?.doctorId);
     const patientName = cleanText(req.body?.patientName);
     const patientLastName = cleanText(req.body?.patientLastName);
@@ -304,7 +306,7 @@ async function startServer() {
       return;
     }
 
-    const store = readStore();
+    const store = await readStorage();
     const doctor = store.doctors.find((item) => item.id === doctorId);
     if (!doctor) {
       res.status(404).json({ error: "Selected doctor was not found." });
@@ -328,7 +330,7 @@ async function startServer() {
     const bookingId = crypto.randomUUID();
     const patientId = `p_${patientPhone.replace(/\D/g, "")}`;
 
-    updateStore((draft) => {
+    await updateStorage((draft) => {
       const booking: BookingRecord = {
         id: bookingId,
         doctorId,
@@ -377,7 +379,7 @@ async function startServer() {
     res.status(201).json({ id: bookingId, status: "success" });
   });
 
-  app.post("/api/auth/login", (req: AdminRequest, res) => {
+  app.post("/api/auth/login", async (req: AdminRequest, res) => {
     const username = cleanText(req.body?.username);
     const password = String(req.body?.password || "");
     const clientKey = getClientKey(req);
@@ -393,7 +395,7 @@ async function startServer() {
       return;
     }
 
-    const admin = verifyAdminCredentials(username, password);
+    const admin = await verifyAdminCredentialsStorage(username, password);
     if (!admin) {
       recordFailedLogin(clientKey);
       res.status(401).json({ error: "Invalid username or password." });
@@ -405,7 +407,7 @@ async function startServer() {
     req.session.adminUserId = admin.id;
     req.session.adminUsername = admin.username;
 
-    updateStore((store) => {
+    await updateStorage((store) => {
       const existing = store.adminUsers.find((item) => item.id === admin.id);
       if (existing) {
         existing.lastLogin = new Date().toISOString();
@@ -444,7 +446,7 @@ async function startServer() {
     });
   });
 
-  app.post("/api/admin/password", requireAdmin, (req: AdminRequest, res) => {
+  app.post("/api/admin/password", requireAdmin, async (req: AdminRequest, res) => {
     const currentPassword = String(req.body?.currentPassword || "");
     const newPassword = String(req.body?.newPassword || "");
 
@@ -458,13 +460,13 @@ async function startServer() {
       return;
     }
 
-    const admin = verifyAdminCredentials(req.session.adminUsername || "", currentPassword);
+    const admin = await verifyAdminCredentialsStorage(req.session.adminUsername || "", currentPassword);
     if (!admin) {
       res.status(401).json({ error: "Current password is incorrect." });
       return;
     }
 
-    updateStore((store) => {
+    await updateStorage((store) => {
       const existing = store.adminUsers.find((item) => item.id === req.session.adminUserId);
       if (existing) {
         existing.passwordHash = hashAdminPassword(newPassword);
@@ -474,20 +476,20 @@ async function startServer() {
     res.json({ success: true });
   });
 
-  app.get("/api/admin/backup", requireAdmin, (_req, res) => {
-    const store = readStore();
+  app.get("/api/admin/backup", requireAdmin, async (_req, res) => {
+    const store = await readStorage();
     res.setHeader("Content-Type", "application/json");
     res.setHeader("Content-Disposition", `attachment; filename=\"clinic-backup-${new Date().toISOString().slice(0, 10)}.json\"`);
     res.send(JSON.stringify(store, null, 2));
   });
 
-  app.post("/api/admin/seed", requireAdmin, (_req, res) => {
-    initDb();
+  app.post("/api/admin/seed", requireAdmin, async (_req, res) => {
+    await initStorage();
     res.json({ success: true });
   });
 
-  app.get("/api/admin/stats", requireAdmin, (_req, res) => {
-    const store = readStore();
+  app.get("/api/admin/stats", requireAdmin, async (_req, res) => {
+    const store = await readStorage();
     const today = new Date().toISOString().split("T")[0];
     const weekStart = new Date();
     weekStart.setDate(weekStart.getDate() - weekStart.getDay());
@@ -509,45 +511,45 @@ async function startServer() {
     });
   });
 
-  app.get("/api/admin/doctors", requireAdmin, (_req, res) => {
-    res.json(readStore().doctors);
+  app.get("/api/admin/doctors", requireAdmin, async (_req, res) => {
+    res.json((await readStorage()).doctors);
   });
 
-  app.post("/api/admin/doctors", requireAdmin, (req, res) => {
+  app.post("/api/admin/doctors", requireAdmin, async (req, res) => {
     const parsed = validateDoctorPayload(req.body);
-    if (!parsed.ok) {
+    if (parsed.ok === false) {
       res.status(400).json({ error: parsed.error });
       return;
     }
 
-    const existing = ensureDoctorExists(parsed.value.id);
+    const existing = await ensureDoctorExists(parsed.value.id);
     if (existing) {
       res.status(409).json({ error: "A doctor with this id already exists." });
       return;
     }
 
-    updateStore((store) => {
+    await updateStorage((store) => {
       store.doctors.push(parsed.value);
     });
 
     res.status(201).json(parsed.value);
   });
 
-  app.patch("/api/admin/doctors/:id", requireAdmin, (req, res) => {
+  app.patch("/api/admin/doctors/:id", requireAdmin, async (req, res) => {
     const id = cleanText(req.params.id);
-    const existing = ensureDoctorExists(id);
+    const existing = await ensureDoctorExists(id);
     if (!existing) {
       res.status(404).json({ error: "Doctor not found." });
       return;
     }
 
     const parsed = validateDoctorPayload({ ...existing, ...req.body }, id);
-    if (!parsed.ok) {
+    if (parsed.ok === false) {
       res.status(400).json({ error: parsed.error });
       return;
     }
 
-    updateStore((store) => {
+    await updateStorage((store) => {
       const doctor = store.doctors.find((item) => item.id === id);
       if (doctor) {
         Object.assign(doctor, parsed.value);
@@ -557,9 +559,9 @@ async function startServer() {
     res.json(parsed.value);
   });
 
-  app.delete("/api/admin/doctors/:id", requireAdmin, (req, res) => {
+  app.delete("/api/admin/doctors/:id", requireAdmin, async (req, res) => {
     const id = cleanText(req.params.id);
-    const store = readStore();
+    const store = await readStorage();
     const doctor = store.doctors.find((item) => item.id === id);
     if (!doctor) {
       res.status(404).json({ error: "Doctor not found." });
@@ -572,7 +574,7 @@ async function startServer() {
       return;
     }
 
-    updateStore((draft) => {
+    await updateStorage((draft) => {
       draft.doctors = draft.doctors.filter((item) => item.id !== id);
       draft.reviews = draft.reviews.filter((review) => review.doctorId !== id);
     });
@@ -580,8 +582,8 @@ async function startServer() {
     res.json({ success: true });
   });
 
-  app.get("/api/admin/appointments", requireAdmin, (_req, res) => {
-    const appointments = readStore().bookings
+  app.get("/api/admin/appointments", requireAdmin, async (_req, res) => {
+    const appointments = (await readStorage()).bookings
       .slice()
       .sort((a, b) => {
         const dateSort = b.appointmentDate.localeCompare(a.appointmentDate);
@@ -590,24 +592,24 @@ async function startServer() {
     res.json(appointments);
   });
 
-  app.get("/api/admin/logs", requireAdmin, (_req, res) => {
-    const logs = readStore().notifications
+  app.get("/api/admin/logs", requireAdmin, async (_req, res) => {
+    const logs = (await readStorage()).notifications
       .slice()
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, 100);
     res.json(logs);
   });
 
-  app.get("/api/admin/patients", requireAdmin, (_req, res) => {
-    const patients = readStore().patients
+  app.get("/api/admin/patients", requireAdmin, async (_req, res) => {
+    const patients = (await readStorage()).patients
       .slice()
       .sort((a, b) => (b.lastVisitDate || "").localeCompare(a.lastVisitDate || ""));
     res.json(patients);
   });
 
-  app.get("/api/admin/revenue", requireAdmin, (_req, res) => {
+  app.get("/api/admin/revenue", requireAdmin, async (_req, res) => {
     const revenueByDate = new Map<string, number>();
-    for (const booking of readStore().bookings) {
+    for (const booking of (await readStorage()).bookings) {
       if (booking.status === BOOKING_STATUS.CANCELLED) continue;
       revenueByDate.set(booking.appointmentDate, (revenueByDate.get(booking.appointmentDate) || 0) + booking.price);
     }
@@ -620,8 +622,8 @@ async function startServer() {
     res.json(rows);
   });
 
-  app.patch("/api/admin/notifications/read-all", requireAdmin, (_req, res) => {
-    updateStore((store) => {
+  app.patch("/api/admin/notifications/read-all", requireAdmin, async (_req, res) => {
+    await updateStorage((store) => {
       for (const notification of store.notifications) {
         notification.isRead = true;
       }
@@ -629,7 +631,7 @@ async function startServer() {
     res.json({ success: true });
   });
 
-  app.patch("/api/admin/appointments/:id/status", requireAdmin, (req, res) => {
+  app.patch("/api/admin/appointments/:id/status", requireAdmin, async (req, res) => {
     const id = cleanText(req.params.id);
     const status = cleanText(req.body?.status);
 
@@ -639,7 +641,7 @@ async function startServer() {
     }
 
     let updated = false;
-    updateStore((store) => {
+    await updateStorage((store) => {
       const booking = store.bookings.find((item) => item.id === id);
       if (booking) {
         booking.status = status;
@@ -655,9 +657,9 @@ async function startServer() {
     res.json({ success: true });
   });
 
-  app.delete("/api/admin/appointments/:id", requireAdmin, (req, res) => {
+  app.delete("/api/admin/appointments/:id", requireAdmin, async (req, res) => {
     const id = cleanText(req.params.id);
-    const store = readStore();
+    const store = await readStorage();
     const exists = store.bookings.some((item) => item.id === id);
 
     if (!exists) {
@@ -665,7 +667,7 @@ async function startServer() {
       return;
     }
 
-    updateStore((draft) => {
+    await updateStorage((draft) => {
       draft.bookings = draft.bookings.filter((item) => item.id !== id);
       draft.notifications = draft.notifications.filter((item) => item.bookingId !== id);
     });

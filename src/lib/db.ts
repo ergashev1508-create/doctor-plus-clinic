@@ -237,7 +237,7 @@ const seedReviews: ReviewRecord[] = [
   },
 ];
 
-const createSeedStore = (): ClinicStore => ({
+export const createSeedStore = (): ClinicStore => ({
   doctors: seedDoctors,
   reviews: seedReviews,
   bookings: [],
@@ -347,7 +347,7 @@ function normalizeDoctorRecord(doctor: DoctorRecord): DoctorRecord {
   };
 }
 
-function normalizeStore(store: ClinicStore): ClinicStore {
+export function normalizeStore(store: ClinicStore): ClinicStore {
   const safeStore: ClinicStore = {
     doctors: Array.isArray(store.doctors) ? store.doctors.map(normalizeDoctorRecord) : [],
     reviews: Array.isArray(store.reviews)
