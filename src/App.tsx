@@ -31,7 +31,7 @@ import { AdminLogin } from './components/Admin/AdminLogin';
 import { cn } from './lib/utils';
 import type { Doctor, Review } from './types';
 
-const CATEGORY_ORDER = ['Консультации', 'УЗИ', 'Гинекология', 'ЛОР', 'Эфферентология', 'Аурикулотерапия', 'Логопед-дефектолог', 'Процедурный кабинет', 'ЭКГ'];
+const CATEGORY_ORDER = ['Консультации', 'УЗИ', 'Гинекология', 'ЛОР', 'Эфферентология', 'Логопед-дефектолог', 'Процедурный кабинет', 'ЭКГ'];
 const CLINIC_MAP_URL =
   'https://2gis.kg/bishkek/search/%D1%83%D0%BB.%20%D0%9C%D0%B0%D1%85%D0%B0%D1%82%D0%BC%D1%8B%20%D0%93%D0%B0%D0%BD%D0%B4%D0%B8%2C%20201';
 const INSTAGRAM_URL = 'https://www.instagram.com/doctorplusclinic.kg/';
