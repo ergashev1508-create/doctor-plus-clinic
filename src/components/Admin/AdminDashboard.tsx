@@ -43,6 +43,8 @@ const TAB_META = [
   { id: 'settings', label: 'Настройки', icon: Filter, description: 'Безопасность и сервисные действия' },
 ] as const;
 
+const ADMIN_PAGE_SIZE = 20;
+
 export const AdminDashboard: React.FC = () => {
   const scheduleScrollRef = useRef<HTMLDivElement | null>(null);
   const scheduleTableScrollRef = useRef<HTMLDivElement | null>(null);
@@ -66,6 +68,8 @@ export const AdminDashboard: React.FC = () => {
   const [doctorFilter, setDoctorFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('');
+  const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const [patientsPage, setPatientsPage] = useState(1);
 
   useEffect(() => {
     fetchData();
@@ -121,6 +125,33 @@ export const AdminDashboard: React.FC = () => {
     });
   }, [appointments, searchTerm, doctorFilter, statusFilter, dateFilter]);
 
+  const filteredPatients = useMemo(() => {
+    const query = searchTerm.toLowerCase();
+    return patients.filter((patient) => {
+      const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+      return fullName.includes(query) || patient.phone.includes(searchTerm);
+    });
+  }, [patients, searchTerm]);
+
+  useEffect(() => {
+    setAppointmentsPage(1);
+  }, [searchTerm, doctorFilter, statusFilter, dateFilter]);
+
+  useEffect(() => {
+    setPatientsPage(1);
+  }, [searchTerm]);
+
+  const appointmentsPageCount = Math.max(1, Math.ceil(filteredAppointments.length / ADMIN_PAGE_SIZE));
+  const patientsPageCount = Math.max(1, Math.ceil(filteredPatients.length / ADMIN_PAGE_SIZE));
+  const paginatedAppointments = filteredAppointments.slice(
+    (appointmentsPage - 1) * ADMIN_PAGE_SIZE,
+    appointmentsPage * ADMIN_PAGE_SIZE
+  );
+  const paginatedPatients = filteredPatients.slice(
+    (patientsPage - 1) * ADMIN_PAGE_SIZE,
+    patientsPage * ADMIN_PAGE_SIZE
+  );
+
   const scheduleTimes = [
     '09:00',
     '09:30',
@@ -167,6 +198,44 @@ export const AdminDashboard: React.FC = () => {
 
   const activeTabMeta = TAB_META.find((tab) => tab.id === activeTab) || TAB_META[0];
   const unreadCount = logs.filter((log) => !log.isRead).length;
+  const renderPagination = (
+    totalItems: number,
+    currentPage: number,
+    pageCount: number,
+    onPageChange: (page: number) => void
+  ) => {
+    if (totalItems <= ADMIN_PAGE_SIZE) return null;
+
+    const firstItem = (currentPage - 1) * ADMIN_PAGE_SIZE + 1;
+    const lastItem = Math.min(currentPage * ADMIN_PAGE_SIZE, totalItems);
+
+    return (
+      <div className="flex flex-col gap-3 border-t border-slate-100 px-6 py-5 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
+        <span className="font-semibold">
+          Показано {firstItem}-{lastItem} из {totalItems}
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="rounded-xl border border-slate-200 px-4 py-2 font-bold text-slate-700 transition-all hover:border-[#5AACE6] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Назад
+          </button>
+          <span className="rounded-xl bg-slate-50 px-4 py-2 font-black text-slate-700">
+            {currentPage} / {pageCount}
+          </span>
+          <button
+            onClick={() => onPageChange(Math.min(pageCount, currentPage + 1))}
+            disabled={currentPage === pageCount}
+            className="rounded-xl border border-slate-200 px-4 py-2 font-bold text-slate-700 transition-all hover:border-[#5AACE6] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Вперёд
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   const updateStatus = async (id: string, status: string) => {
     await api.updateAppointmentStatus(id, status);
@@ -515,7 +584,7 @@ export const AdminDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredAppointments.map((appointment) => (
+                        {paginatedAppointments.map((appointment) => (
                           <tr key={appointment.id} className="border-t border-slate-100 align-top hover:bg-slate-50/70 transition-colors">
                             <td className="px-6 py-5">
                               <p className="font-black">{appointment.appointmentDate}</p>
@@ -568,6 +637,7 @@ export const AdminDashboard: React.FC = () => {
                   {filteredAppointments.length === 0 && (
                     <div className="px-6 py-16 text-center text-slate-400 font-semibold">По заданным фильтрам ничего не найдено.</div>
                   )}
+                  {renderPagination(filteredAppointments.length, appointmentsPage, appointmentsPageCount, setAppointmentsPage)}
                 </div>
               </section>
             )}
@@ -672,12 +742,7 @@ export const AdminDashboard: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {patients
-                        .filter((patient) =>
-                          `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          patient.phone.includes(searchTerm)
-                        )
-                        .map((patient) => (
+                      {paginatedPatients.map((patient) => (
                           <tr key={patient.id} className="hover:bg-slate-50/70 transition-colors">
                             <td className="py-5 font-black">{patient.firstName} {patient.lastName}</td>
                             <td className="py-5 text-slate-500">{patient.phone}</td>
@@ -689,6 +754,10 @@ export const AdminDashboard: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
+                {filteredPatients.length === 0 && (
+                  <div className="px-6 py-16 text-center text-slate-400 font-semibold">Пациенты не найдены.</div>
+                )}
+                {renderPagination(filteredPatients.length, patientsPage, patientsPageCount, setPatientsPage)}
               </section>
             )}
 
